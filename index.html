@@ -9,6 +9,17 @@
 
 </head>
 <body>    
+    <!-- Where the user choose to create new sounds -->
+    <div id="create">
+        <h1>Make Noise</h1>
+        <ul>
+            <li class="selected">Kick</li>
+            <li>Base</li>
+            <li>Piano</li>
+            <li>Fluit</li>
+        </ul>
+    </div>
+
     <div class="sounds-wrapper">
         <div id="bass" class="bar-wrapper">
             <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
@@ -51,6 +62,7 @@
 
     <!-- Including the scripts -->
     <script src="js/lib/jquery-1.11.1.js"></script>
+    <script src="js/lib/jquery-ui-1.11.1.min.js"></script>
     <script src="js/lib/howler.min.js"></script>
     <script src="js/lib/wad.js"></script>
     <script src="js/lib/leap-0.6.3.js"></script>

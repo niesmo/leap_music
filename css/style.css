@@ -58,3 +58,47 @@ body{
     top: 255px;
     left: -152px;
 }
+
+#create{
+    background-color: #19B4DE;
+    width: 200px;
+    border: 5px solid white;
+    position: absolute;
+    top: 50%;
+    margin-top: -230px;
+}
+
+#create h1{
+    text-align: center;
+    border-bottom: 2px solid white;
+    padding-bottom: 0.67em;
+    margin-bottom: 0;   
+}
+
+#create ul{
+    margin:0;
+    padding:0;
+    list-style-type: none;
+}
+
+#create ul li{
+    padding: 10px;
+    font-size: 20pt;
+    text-align: center;
+    letter-spacing: 15px;
+    font-weight: bold;
+    font-family: "papyrus";
+    overflow: :hidden;
+}
+
+#create ul li.selected{
+    background-color: gainsboro;
+}
+
+#create ul li svg {
+    position: absolute;
+}
+
+#create ul li circle{
+    fill: rgba(255,255,255,0.75);
+}
