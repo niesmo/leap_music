@@ -1,0 +1,60 @@
+body{
+    background-color:rgb(55, 55, 55);
+}
+
+.sounds-wrapper{
+    width: 1000px;
+    height: 100%;
+    margin: 0 auto;
+}
+
+.bar-wrapper{
+    display: inline-block;
+    background-color: rgb(21, 69, 90);
+    width: 200px;
+    height: 700px;
+    margin-left: 37px;
+    text-align: center;
+    overflow:hidden;
+}
+
+.bar-wrapper p{
+    font-size:30px;
+    font-family:Broadway;
+    color:white;
+}
+
+
+.bar{
+    width: 100px;
+    height: 300px;
+    background-color: rgb(142, 13, 23);
+    margin: 0 auto;
+}
+
+#keyboard{
+    width: 1000px;
+    height: 200px;
+    margin: 0 auto;
+    background-color: rgb(87, 87, 87);
+    padding-top: 10px;
+    text-align: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+}
+
+.key{
+    width: calc( 1000px / 16 );
+    height: 100%;
+    background-color: rgb(113, 113, 113);
+    display: inline-block;
+}
+
+.vol-bar{
+    width: 300px;
+    transform: rotate(90deg);
+    position: relative;
+    top: 255px;
+    left: -152px;
+}

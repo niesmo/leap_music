@@ -8,21 +8,51 @@
     <link href="css/style.css" rel="stylesheet" type="text/css" />
 
 </head>
-<body>
-    <h1>Check this out</h1>
-
-    <p>Frame :</p>
-    <div id="frame"></div>
-
-    <p>Palm :</p>
-    <div id="palm"></div>
-
-    <p>Index :</p>
-    <div id="index"></div>
+<body>    
+    <div class="sounds-wrapper">
+        <div id="bass" class="bar-wrapper">
+            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
+            <p>Bass</p>
+            <div class="bar"></div>
+        </div>
+        <div id="kick" class="bar-wrapper">
+            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
+            <p>Kick</p>
+            <div class="bar"></div>
+        </div>
+        <div id="piano" class="bar-wrapper">
+            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
+            <p>Piano</p>
+            <div class="bar"></div>
+        </div>
+        <div id="fluit" class="bar-wrapper">
+            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
+            <p>Fluit</p>
+            <div class="bar"></div>
+        </div>
+    </div>
+    <div id="keyboard">
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+        <div class="key"></div>
+    </div>
 
     <!-- Including the scripts -->
     <script src="js/lib/jquery-1.11.1.js"></script>
     <script src="js/lib/howler.min.js"></script>
+    <script src="js/lib/wad.js"></script>
     <script src="js/lib/leap-0.6.3.js"></script>
     <script src="js/index.js"></script>
 </body>

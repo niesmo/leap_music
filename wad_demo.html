@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Wad Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="instrument-nav">
+        <ul>
+            <li id="kick" class="btn btn-default toggle on">Kick</li>
+            <li id="bass" class="btn btn-default toggle on">Bass</li>
+            <li id="snare" class="btn btn-default toggle on">Snare</li>
+            <li id="hihats" class="btn btn-default toggle on">Hihats</li>
+            <li id="flute" class="btn btn-default toggle on">Flute</li>
+            <li id="piano" class="btn btn-default toggle on">Piano</li>
+            <li id="play" class="btn btn-success pull-right">Play!</li>
+        </ul>
+    </div>
+    <div class="container">
+        <div class="space"></div>
+        <div class="space"></div>
+        <div class="space"> </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h1 class="text-center">Wad.js Demo Song</h1>
+            </div>
+        </div>
+        <div class="space"></div>
+        <div class="row">
+            <div class="col-sm-1"></div>
+            <div class="col-sm-10">
+                <p class="p-text">Wad is a Javascript library for manipulating audio using the new HTML5 Web Audio API. It greatly simplifies the process of creating, playing, and manipulating audio, either for real-time playback, or at scheduled intervals.</p>
+                <br>
+                <p class="p-text">Press the "Play!" button to start playing a demo song. Hover over any of the instrument buttons at the top of the screen to read a brief description of how that instrument was synthesized in this song. Click any of the buttons to mute or unmute that particular instrument. If you mute or unmute an instrument while the song is playing, it may take several seconds for the change to take effect. </p>
+                <br>
+                <p class="p-text">Learn more about this project on <a href="http://github.com/rserota/wad">GitHub</a>.</p>
+            </div>
+        </div>
+        <div class="space"></div>
+        <hr>
+        <div class="space"></div>
+        <div id="text-box"></div>
+    </div>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+    <script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.2/js/bootstrap.min.js"></script>
+    <script src="js/lib/wad.js"></script>
+    <script src="js/songdemo.js"></script>
+    <script src="js/song-demo-templates.js"></script>
+</body>
+
+</html>

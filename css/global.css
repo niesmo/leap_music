@@ -1,0 +1,50 @@
+body {
+    overflow-y:scroll;
+    min-height:1200px;
+}
+.space {
+    height: 35px;
+}
+
+.instrument-nav {
+    position: fixed;
+    background-color:white;
+    border-bottom: 1px solid black;
+    z-index:10;
+    width:100%;
+}
+.instrument-nav li {
+    height: 40px;
+    width: 100px;
+    display: inline-block;
+    margin: 10px;
+    transition: all .3s;
+}
+
+.toggle:hover {
+    background-color: lightsteelblue;
+}
+
+.toggle.on:hover {
+    color: aliceblue;
+    background-color: cornflowerblue;
+}
+
+.on {
+    color: aliceblue;
+    background-color: dodgerblue;
+}
+
+#text-box {
+    transition: all .2s;
+    opacity: 1;
+}
+
+#text-box.transitioning {
+    opacity: 0;
+}
+
+.p-text {
+    font-family: Arial;
+    font-size: 18px;
+}
