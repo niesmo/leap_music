@@ -15,25 +15,25 @@ $(document).ready(function () {
         }
     });
 
-    musicClient.createKick(1000);
+    // musicClient.createKick(1000);
 
     Leap.loop(function (frame) {
         gestureClient.update(frame);
 
-        if (gestureClient.isLeftIndexFingerPressed()) {
-            app.leftIndexPressed();        
-        }
-
-
-
+        // if (gestureClient.isLeftIndexFingerPressed()) {
+        //     app.leftIndexPressed();        
+        // }
 
 
         //activating the menu for the make noise
         if(makeNoiseMenuClient.canBeActivated()){
-            console.log(gestureClient.hands.right.palmPosition[2]);
-
+            //acticating the create noise panel
             makeNoiseMenuClient.activate();
+
+            //chaning the menu option based on the right hand degree
             makeNoiseMenuClient.setDegree(gestureClient.hands.right.direction[1]);
+
+            //checking for a click on the noise menu
             makeNoiseMenuClient.setDepth(gestureClient.hands.right.palmPosition[2]);
         }
         else{
@@ -73,8 +73,6 @@ var musicClient = {
     config:{
         kickFrequencyMin:50,
         kickFrequencyMax: 2000,
-
-
     },
 
     _debugMode: true,
@@ -188,6 +186,82 @@ var musicClient = {
     },
 }
 
+var soundClient = {
+    config: {
+        sounds: {kick:"kick", bass:"bass", piano:"piano", fluit:"fluit"},
+        defaultFrequency : 1000,
+    },
+
+    //local variables
+    _registeredSounds : new Array(),
+    lastCreatedSound: {},
+
+
+    //create new sound
+    createNewSound: function(soundType){
+
+        switch(soundType){
+            case this.config.sounds.kick:
+                this.createKick();
+                break;
+            case this.config.sounds.bass:
+                this.createBass();
+                break;
+            case this.config.sounds.piano:
+                this.createPiano();
+                break;
+            case this.config.sounds.fluit:
+                this.createFluit();
+                break;
+            default:
+                break;
+        }
+    },
+
+    //Creates a kick noise
+    createKick: function(){
+        //defining the sound and other variables
+        var kickSound = new Wad({source: 'assets/songs/kick.mp3'});
+        var kickGuid = guid();
+        var tempInterval;
+
+
+        //startig the interval that repeats the sound
+        tempInterval = setVariableInterval(function () {
+            kickSound.play();
+        }, this.config.defaultFrequency);
+
+
+        //registerig the sound
+        this._registeredSounds[kickGuid] = {
+            sound : kickSound,
+            frequency: this.config.defaultFrequency,
+            interval: tempInterval,
+        };
+
+        //setting the last created sounds
+        this.lastCreatedSound = this._registeredSounds[kickGuid];
+
+        return kickGuid;
+    },
+
+    //creates a bass noise
+    createBass: function(){
+
+    },
+
+    //creates a piano sound
+    createPiano: function(){
+
+    },
+
+    //creats a fluit sound
+    createFluit: function(){
+
+    },
+
+}
+
 var gestureClient = {
     config:{
         hands: ['right', 'left'],
@@ -275,7 +349,15 @@ var makeNoiseMenuClient = {
     config : {
         //the required height for the menu to get activated
         rightHandHeightForMenu : 150,
+        
+        //the required depth for a click
         menuClickDepth: -30,
+
+        //time for reseting the make noise menu
+        selectedTimeout: 15000,
+
+        //menu items
+        menuItem: ["kick", "bass", "piano", "fluit"],
     },
 
 
@@ -283,6 +365,7 @@ var makeNoiseMenuClient = {
     selected : 0,
     selected_next : 0,
     is_active: false,
+    restarted: true,
 
     //leap motion variables
     lp_direction : 0,
@@ -292,7 +375,12 @@ var makeNoiseMenuClient = {
     //checks the height of the right hands to see if
     //it is high enough for the menu to be activated
     canBeActivated: function(){
-        if(gestureClient.hands.right === undefined) return false;
+        var now = new Date();
+
+        if(this.lastSelected && now - this.lastSelected < this.config.selectedTimeout) return false;
+
+
+        if(gestureClient.hands.right === undefined || !this.restarted) return false;
         if(gestureClient.hands.right.palmPosition[1] > this.config.rightHandHeightForMenu)
             return true;
         return false;
@@ -300,7 +388,6 @@ var makeNoiseMenuClient = {
 
     //activates the panel
     activate: function (){
-        console.log();
         if(!this.is_active)
         {
             this.is_active = true;
@@ -312,6 +399,7 @@ var makeNoiseMenuClient = {
     deactivate: function (){
         if(this.is_active)
         {
+            this.restarted = true;
             this.is_active = false;
             this.UI.deactivatePanel();
         }
@@ -335,6 +423,9 @@ var makeNoiseMenuClient = {
         else if(this.lp_direction < -0.3 && this.lp_direction > -0.5) this.selected_next = 2;
         else this.selected_next = 3;
 
+        if(this.selected_next != this.selected)
+            this.UI.removeProgressBar();
+
         this.setSelectedItem(this.selected_next);
     },
 
@@ -344,6 +435,25 @@ var makeNoiseMenuClient = {
     setDepth: function(depth){
         this.lp_depth = depth;
 
+        var percent = changeRange(this.lp_depth, 100,0,-50,300);
+        this.UI.setProgressBar(percent);
+
+        if(percent >= 100){
+            this.UI.ripple();
+
+            this.restarted = false;
+            this.lastSelected = new Date();
+
+            this.soundCreated();
+        }
+    },
+
+    //this function is the menu function to communicate to the sound client
+    soundCreated : function(){
+        var index = $("#create ul li.selected").index();
+        var type = this.config.menuItem[index];
+
+        soundClient.createNewSound(soundClient.config.sounds[type]);
     },
 
     /*
@@ -369,7 +479,8 @@ var makeNoiseMenuClient = {
         Deactivates the panel by removing the class `selected` to the li[0]
         */
         deactivatePanel: function (){
-            $("#create ul li").removeClass("selected");
+            this.removeProgressBar();
+            $("#create ul li").removeClass("selected"); 
         },
 
         /*
@@ -417,6 +528,29 @@ var makeNoiseMenuClient = {
                     }
                 }
             );
+        },
+
+        /*
+        Creates and adds a progress bar to the selected menu
+        */
+        setProgressBar: function(percent){
+            if(percent > 100) percent = 100;
+            
+            //if the progress bar is already created
+            if ($("#create ul li.selected div").length ){
+                $("#create ul li.selected div span").css("width", percent+"%");
+            }
+
+            //if its the first time and we are creating the progress bar
+            else
+                $("#create ul li.selected").append("<div class='meter'><span style='width:"+percent+"%'></span></div>");
+        },
+
+        /*
+        Removes the progress bar from the selected li
+        */
+        removeProgressBar: function(){
+            $("#create ul li.selected div").remove();
         }
     }
 }
