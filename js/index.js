@@ -10,6 +10,20 @@ $(document).ready(function () {
         //     app.leftIndexPressed();        
         // }
 
+        if(configurationClient.canBeActivated()){
+            configurationClient.activate();
+
+            //set the degree of the hand and the config item
+            configurationClient.setDegree(gestureClient.hands.left.direction[1]);
+
+            // set the depth of the hand for the user to be able to change the configuration
+            configurationClient.setDepth(gestureClient.hands.left.palmPosition[2]);
+
+        }
+        else{
+            configurationClient.deactivate();
+        }
+
 
         //activating the menu for the make noise
         if(makeNoiseMenuClient.canBeActivated()){
@@ -58,12 +72,110 @@ var app = {
     setup:function(){
         $("#kick-frequency").on("input change",configurationClient.kickClient.eventHanders.frequencyUpdated);
         $("#kick-delay").on("input change",configurationClient.kickClient.eventHanders.delayUpdated);
-    }
 
+
+    }
 }
 
 var configurationClient = {
-    currentSound : {},
+    config : {
+        minDepthForSelect : 30,
+    },
+
+    currentSound : undefined,
+    is_active: false,
+    selected: -1,
+    selected_next: -1,
+
+    canBeActivated: function(){
+
+        if (gestureClient.hands.left === undefined) return false;
+        if (this.currentSound == undefined) return false;
+
+        return true;
+    },
+
+    activate: function(){
+        if(!this.is_active){
+            this.is_active = true;
+            this.UI.activate();
+        }
+    },
+
+    deactivate: function(){
+        if(this.is_active){
+            this.is_active = false;
+            this.UI.deactivate();
+        }
+    },
+
+    setDegree:function(direction){
+        //getting the number of the inputs in the current config panel
+        var inputCount = $("#"+this.currentSound.type + " input").length;
+        
+
+        var inputIndex = changeRange(direction, 0, inputCount, 1,-1);
+        this.selected_next = Math.floor(inputIndex);
+
+        //selected the selected item in the UI
+        this.setSelectedItem(this.selected_next);
+    },
+
+    setDepth : function(depth){
+        if(depth < this.config.minDepthForSelect){
+            if(this.canChangeConfiguration()){
+                this.setConfig();
+            }
+        }
+    },
+
+    setConfig: function(){
+        
+    },
+
+    //checks the angle of the left hand
+    canChangeConfiguration: function(){
+        return true;
+    },
+
+    setSelectedItem: function(index){
+        this.selected = index;
+        this.UI.setSelectedItem(index);
+    },
+
+    setActiveSound: function(cs){
+        this.currentSound = cs;
+
+        //changing the config panel
+        this.UI.setConfigPanel(cs.type);
+    },
+
+
+
+    UI:{
+        setConfigPanel: function(type){
+            $(".config-wrapper > div").addClass("hidden");
+            $("#"+type).removeClass("hidden");
+        },
+
+        activate: function(){
+            $(".config-wrapper").addClass("active");
+        },
+
+        deactivate: function(){
+            $(".config-wrapper").removeClass("active");
+            $(".config-wrapper > div:not(.hidden) label").removeClass("red-active");
+        },
+
+        setSelectedItem: function(index){
+
+            //removing the previously active element
+            $("#"+ configurationClient.currentSound.type + " label").removeClass("red-active");
+            var label = $($("#"+ configurationClient.currentSound.type + " label")[index]);
+            if(label.class != "red-active")
+                label.addClass("red-active");
+        }
+    },
 
     kickClient: {
         config: {
@@ -92,25 +204,16 @@ var configurationClient = {
     },
 
     bassClient: {
-
-
     },
 
     pianoClient: {
-
-
     },
 
     fluteClient: {
-
-
     },
 
     clapClient: {
-
-
     }
-
 }
 
 var musicClient = {
@@ -271,6 +374,9 @@ var soundClient = {
 
         //after the song is created, add it to the history
         soundHistoryClient.UI.addNewSound(this.lastCreatedSound);
+
+        //setting the active sound of the config
+        configurationClient.setActiveSound(this.lastCreatedSound);
     },
 
     //Creates a kick noise
@@ -281,12 +387,6 @@ var soundClient = {
         });
 
         var kickGuid = guid();
-        var tempInterval;
-        //startig the interval that repeats the sound
-        tempInterval = setVariableInterval(function () {
-            kickSound.play();
-        }, this.config.defaultFrequency);
-
 
         //registerig the sound
         this._registeredSounds[kickGuid] = {
@@ -295,7 +395,15 @@ var soundClient = {
             sound : kickSound,
             frequency: this.config.defaultFrequency,
             interval: tempInterval,
+            args: {},
         };
+
+
+        var tempInterval;
+        //startig the interval that repeats the sound
+        tempInterval = setVariableInterval(function () {
+            kickSound.play(soundClient._registeredSounds[kickGuid].args);
+        }, this.config.defaultFrequency);
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[kickGuid];
@@ -325,13 +433,6 @@ var soundClient = {
         
 
         var bassGuid = guid();
-        var tempInterval;
-
-        //starting the interval
-        tempInterval = setVariableInterval(function(){
-            // bassSound.play();
-            bassSound.play({ pitch : 'C2' });
-        },this.config.defaultFrequency);
 
         //registering the song
         this._registeredSounds[bassGuid] = {
@@ -340,7 +441,17 @@ var soundClient = {
             sound : bassSound,
             frequency: this.config.defaultFrequency,
             interval: tempInterval,
+            args: {
+                pitch : 'C2'
+            },
         };
+
+        var tempInterval;
+
+        //starting the interval
+        tempInterval = setVariableInterval(function(){
+            bassSound.play(soundClient._registeredSounds[bassGuid].args);
+        },this.config.defaultFrequency);
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[bassGuid];
@@ -354,13 +465,6 @@ var soundClient = {
         var pianoSound = new Wad(Wad.presets.piano);
         var pianoGuid = guid();
 
-        var tempInterval;
-
-        //starting the time interval
-        tempInterval = setVariableInterval(function(){
-            pianoSound.play();
-        },this.config.defaultFrequency);
-
         //registering the sound
         this._registeredSounds[pianoGuid] = {
             guid: pianoGuid,
@@ -368,7 +472,16 @@ var soundClient = {
             sound : pianoSound,
             frequency: this.config.defaultFrequency,
             interval: tempInterval,
+            args:{}
         };
+
+        var tempInterval;
+
+        //starting the time interval
+        tempInterval = setVariableInterval(function(){
+            pianoSound.play(soundClient._registeredSounds[pianoGuid].args);
+        },this.config.defaultFrequency);
+
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[pianoGuid];
@@ -379,34 +492,8 @@ var soundClient = {
 
     //creats a flute sound
     createFlute: function(){
-        var fluteSound = new Wad({
-            source : 'square',
-            volume: 0.5,
-            env : {
-                attack : .015, 
-                decay : .002, 
-                sustain : .5, 
-                hold : 2.5, 
-                release : .3
-            }, 
-            filter : {
-                type : 'lowpass', 
-                frequency : 600, 
-                q : 7, 
-                env : { 
-                    attack : .7, 
-                    frequency : 1600
-                }
-            }, 
-        });
-
+        var fluteSound = new Wad({source : 'square'});
         var fluteGuid =  guid();
-        var tempInterval;
-
-        //starting the time interval
-        tempInterval = setVariableInterval(function(){
-            fluteSound.play({pitch: "C4"});
-        },this.config.defaultFrequency);
 
         //registering the sound
         this._registeredSounds[fluteGuid] = {
@@ -415,8 +502,34 @@ var soundClient = {
             sound : fluteSound,
             frequency: this.config.defaultFrequency,
             interval: tempInterval,
+            args:{
+                volume: 0.5,
+                env : {
+                    attack : .015, 
+                    decay : .002, 
+                    sustain : .5, 
+                    hold : 2.5, 
+                    release : .3
+                }, 
+                filter : {
+                    type : 'lowpass', 
+                    frequency : 600, 
+                    q : 7, 
+                    env : { 
+                        attack : .7, 
+                        frequency : 1600
+                    }
+                },
+                pitch: "C4"
+            }
         };
 
+        var tempInterval;
+
+        //starting the time interval
+        tempInterval = setVariableInterval(function(){
+            fluteSound.play(soundClient._registeredSounds[fluteGuid].args);
+        },this.config.defaultFrequency);
 
         //setting the last created sound
         this.lastCreatedSound = this._registeredSounds[fluteGuid];
@@ -433,12 +546,6 @@ var soundClient = {
         });
 
         var clapGuid = guid();
-        var tempInterval;
-        //startig the interval that repeats the sound
-        tempInterval = setVariableInterval(function () {
-            clapSound.play();
-        }, this.config.defaultFrequency);
-
 
         //registerig the sound
         this._registeredSounds[clapGuid] = {
@@ -447,7 +554,14 @@ var soundClient = {
             sound : clapSound,
             frequency: this.config.defaultFrequency,
             interval: tempInterval,
+            args: {}
         };
+
+        var tempInterval;
+        //startig the interval that repeats the sound
+        tempInterval = setVariableInterval(function () {
+            clapSound.play(soundClient._registeredSounds[clapGuid].args);
+        }, this.config.defaultFrequency);
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[clapGuid];
@@ -543,7 +657,6 @@ var soundHistoryClient = {
             var newItem = $("<li guid='"+soundObj.guid+"' />").text(soundObj.type);
 
             $("#sound-history ol").append(newItem);
-            console.log(soundObj);
         }
     }
 }

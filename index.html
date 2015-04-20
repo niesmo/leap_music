@@ -31,22 +31,35 @@
     <!-- Where the user can modify an existing sound -->
     <div class="config-wrapper">
         <div id="kick">
+            <h1>Kick Sound</h1>
             <label for="kick-frequency">Frequency : <span id="kick-frquency-value">1000</span> ms</label>
             <input type="range" min="20" max="5000" value="1000" id="kick-frequency" />
 
             <label for="kick-delay">Delay : <span id="kick-delay-value">0</span> ms</label>
             <input type="range" min="0" max="5000" value="0" id="kick-delay" />
+
+            <label for="kick-reberb">Reverb : <span id="kick-reverb-value">0</span></label>
+            <input type="range" min="0" max="1" value="0" step="0.01" id="kick-reverb" />
         </div>
+
+
         <div id="bass" class="hidden">
+            <h1>Bass Sound</h1>
 
         </div>
+
+
         <div id="piano" class="hidden">
+            <h1>Paino Sound</h1>
 
         </div>
         <div id="flute" class="hidden">
+            <h1>Flute Sound</h1>
 
         </div>
         <div id="clap"class="hidden">
+            <h1>Clap Sound</h1>
+
 
         </div>
     </div>
@@ -75,6 +88,7 @@
     <script src="js/lib/howler.min.js"></script>
     <script src="js/lib/wad.js"></script>
     <script src="js/lib/leap-0.6.3.js"></script>
+    <script src="js/lib/music.js"></script>
     <script src="js/index.js"></script>
 </body>
 </html>

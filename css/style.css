@@ -6,15 +6,25 @@ body{
     display: none;
 }
 
+.red-active{
+    color:red;
+}
+
 .config-wrapper{
     width: 1000px;
     height: 750px;
     /*margin: 0 auto;*/
     position: absolute;
     left: 50%;
-    margin-left: -500px;
+    margin-left: -495px;
     top: 50%;
+    margin-top: -345px;
+}
+
+.config-wrapper.active{
+    border: 5px solid #EF2B2B;
     margin-top: -350px;
+    margin-left: -500px;
 }
 
 .config-wrapper > div{
@@ -23,6 +33,10 @@ body{
     background-color: aliceblue;
     position: absolute;
     padding: 10px;
+}
+
+#kick > h1{
+    text-align: center;
 }
 
 #kick label{
