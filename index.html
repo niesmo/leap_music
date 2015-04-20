@@ -11,38 +11,47 @@
 <body>    
     <!-- Where the user choose to create new sounds -->
     <div id="create">
-        <h1>Make Noise</h1>
-        <ul>
+        <h1 class="list-title">Make Noise</h1>
+        <ul class="side-list"> 
             <li>Kick</li>
             <li>Bass</li>
             <li>Piano</li>
-            <li>Fluit</li>
+            <li>Flute</li>
+            <li>Clap</li>
         </ul>
     </div>
 
-    <div class="sounds-wrapper">
-        <div id="bass" class="bar-wrapper">
-            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
-            <p>Bass</p>
-            <div class="bar"></div>
+    <!-- Where the created sounds show up -->
+    <div id="sound-history">
+        <h1 class="list-title">Sound History</h1>
+        <ol class="side-list">            
+        </ol>
+    </div>
+
+    <!-- Where the user can modify an existing sound -->
+    <div class="config-wrapper">
+        <div id="kick">
+            <label for="kick-frequency">Frequency : <span id="kick-frquency-value">1000</span> ms</label>
+            <input type="range" min="20" max="5000" value="1000" id="kick-frequency" />
+
+            <label for="kick-delay">Delay : <span id="kick-delay-value">0</span> ms</label>
+            <input type="range" min="0" max="5000" value="0" id="kick-delay" />
         </div>
-        <div id="kick" class="bar-wrapper">
-            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
-            <p>Kick</p>
-            <div class="bar"></div>
+        <div id="bass" class="hidden">
+
         </div>
-        <div id="piano" class="bar-wrapper">
-            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
-            <p>Piano</p>
-            <div class="bar"></div>
+        <div id="piano" class="hidden">
+
         </div>
-        <div id="fluit" class="bar-wrapper">
-            <input class="vol-bar" type="range" min="0" max="100" value="100" /> 
-            <p>Fluit</p>
-            <div class="bar"></div>
+        <div id="flute" class="hidden">
+
+        </div>
+        <div id="clap"class="hidden">
+
         </div>
     </div>
-    <div id="keyboard">
+
+    <!-- <div id="keyboard">
         <div class="key"></div>
         <div class="key"></div>
         <div class="key"></div>
@@ -58,7 +67,7 @@
         <div class="key"></div>
         <div class="key"></div>
         <div class="key"></div>
-    </div>
+    </div> -->
 
     <!-- Including the scripts -->
     <script src="js/lib/jquery-1.11.1.js"></script>

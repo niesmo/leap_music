@@ -1,22 +1,8 @@
 $(document).ready(function () {
 
+    //setting up the events
+    app.setup();
    
-    var kick = new Wad({ source: 'assets/songs/kick.mp3' });
-    var bass = new Wad({
-        source: 'sine',
-        volume: .9,
-        globalReverb: true,
-        env: {
-            attack: .02,
-            decay: .1,
-            sustain: .9,
-            hold: .4,
-            release: .1
-        }
-    });
-
-    // musicClient.createKick(1000);
-
     Leap.loop(function (frame) {
         gestureClient.update(frame);
 
@@ -66,7 +52,65 @@ var app = {
 
 
         //$("#kick p").text(f);
+    },
+
+    //sets up all the necessary events for the app
+    setup:function(){
+        $("#kick-frequency").on("input change",configurationClient.kickClient.eventHanders.frequencyUpdated);
+        $("#kick-delay").on("input change",configurationClient.kickClient.eventHanders.delayUpdated);
     }
+
+}
+
+var configurationClient = {
+    currentSound : {},
+
+    kickClient: {
+        config: {
+            attributes: {delay:"delay", frequency:"frequency"},
+        },
+
+        eventHanders:{
+            frequencyUpdated: function(e){
+                configurationClient.kickClient.UI.updateFrequency(e.target.value);
+            },
+
+            delayUpdated: function(e){
+                configurationClient.kickClient.UI.updateDelay(e.target.value);
+            }
+        },
+
+        UI:{
+            updateFrequency: function(f){
+                $("#kick-frquency-value").text(f);
+            },
+
+            updateDelay: function(d){
+                $("#kick-delay-value").text(d);  
+            }
+        },
+    },
+
+    bassClient: {
+
+
+    },
+
+    pianoClient: {
+
+
+    },
+
+    fluteClient: {
+
+
+    },
+
+    clapClient: {
+
+
+    }
+
 }
 
 var musicClient = {
@@ -188,7 +232,7 @@ var musicClient = {
 
 var soundClient = {
     config: {
-        sounds: {kick:"kick", bass:"bass", piano:"piano", fluit:"fluit"},
+        sounds: {kick:"kick", bass:"bass", piano:"piano", flute:"flute", clap: "clap"},
         defaultFrequency : 1000,
     },
 
@@ -204,28 +248,40 @@ var soundClient = {
             case this.config.sounds.kick:
                 this.createKick();
                 break;
+            
             case this.config.sounds.bass:
                 this.createBass();
                 break;
+            
             case this.config.sounds.piano:
                 this.createPiano();
                 break;
-            case this.config.sounds.fluit:
-                this.createFluit();
+            
+            case this.config.sounds.flute:
+                this.createFlute();
                 break;
+
+            case this.config.sounds.clap:
+                this.createClap();
+                break;
+            
             default:
                 break;
         }
+
+        //after the song is created, add it to the history
+        soundHistoryClient.UI.addNewSound(this.lastCreatedSound);
     },
 
     //Creates a kick noise
     createKick: function(){
         //defining the sound and other variables
-        var kickSound = new Wad({source: 'assets/songs/kick.mp3'});
+        var kickSound = new Wad({
+            source: 'assets/sounds/kick.mp3',
+        });
+
         var kickGuid = guid();
         var tempInterval;
-
-
         //startig the interval that repeats the sound
         tempInterval = setVariableInterval(function () {
             kickSound.play();
@@ -234,6 +290,8 @@ var soundClient = {
 
         //registerig the sound
         this._registeredSounds[kickGuid] = {
+            guid: kickGuid,
+            type: this.config.sounds.kick,
             sound : kickSound,
             frequency: this.config.defaultFrequency,
             interval: tempInterval,
@@ -247,25 +305,161 @@ var soundClient = {
 
     //creates a bass noise
     createBass: function(){
+        var bassSound = new Wad({
+            source: "assets/sounds/bass.wav",
+        });
 
+        var bassSound = new Wad({
+            source: 'sine',
+            volume: 1.5,
+            globalReverb: true,
+            env: {
+                attack: 0.2,
+                decay: .1,
+                sustain: .9,
+                hold: .4,
+                release: .1
+            }
+        });
+         
+        
+
+        var bassGuid = guid();
+        var tempInterval;
+
+        //starting the interval
+        tempInterval = setVariableInterval(function(){
+            // bassSound.play();
+            bassSound.play({ pitch : 'C2' });
+        },this.config.defaultFrequency);
+
+        //registering the song
+        this._registeredSounds[bassGuid] = {
+            guid: bassGuid,
+            type: this.config.sounds.bass,
+            sound : bassSound,
+            frequency: this.config.defaultFrequency,
+            interval: tempInterval,
+        };
+
+        //setting the last created sounds
+        this.lastCreatedSound = this._registeredSounds[bassGuid];
+
+        //returning
+        return bassGuid;
     },
 
     //creates a piano sound
     createPiano: function(){
+        var pianoSound = new Wad(Wad.presets.piano);
+        var pianoGuid = guid();
 
+        var tempInterval;
+
+        //starting the time interval
+        tempInterval = setVariableInterval(function(){
+            pianoSound.play();
+        },this.config.defaultFrequency);
+
+        //registering the sound
+        this._registeredSounds[pianoGuid] = {
+            guid: pianoGuid,
+            type: this.config.sounds.piano,
+            sound : pianoSound,
+            frequency: this.config.defaultFrequency,
+            interval: tempInterval,
+        };
+
+        //setting the last created sounds
+        this.lastCreatedSound = this._registeredSounds[pianoGuid];
+
+        //returning
+        return pianoGuid;
     },
 
-    //creats a fluit sound
-    createFluit: function(){
+    //creats a flute sound
+    createFlute: function(){
+        var fluteSound = new Wad({
+            source : 'square',
+            volume: 0.5,
+            env : {
+                attack : .015, 
+                decay : .002, 
+                sustain : .5, 
+                hold : 2.5, 
+                release : .3
+            }, 
+            filter : {
+                type : 'lowpass', 
+                frequency : 600, 
+                q : 7, 
+                env : { 
+                    attack : .7, 
+                    frequency : 1600
+                }
+            }, 
+        });
 
+        var fluteGuid =  guid();
+        var tempInterval;
+
+        //starting the time interval
+        tempInterval = setVariableInterval(function(){
+            fluteSound.play({pitch: "C4"});
+        },this.config.defaultFrequency);
+
+        //registering the sound
+        this._registeredSounds[fluteGuid] = {
+            guid: fluteGuid,
+            type: this.config.sounds.flute,
+            sound : fluteSound,
+            frequency: this.config.defaultFrequency,
+            interval: tempInterval,
+        };
+
+
+        //setting the last created sound
+        this.lastCreatedSound = this._registeredSounds[fluteGuid];
+
+        //returning the value
+        return fluteGuid;
     },
 
+    //creates a clap sound
+    createClap: function(){
+        //defining the sound and other variables
+        var clapSound = new Wad({
+            source: 'assets/sounds/clap.wav',
+        });
+
+        var clapGuid = guid();
+        var tempInterval;
+        //startig the interval that repeats the sound
+        tempInterval = setVariableInterval(function () {
+            clapSound.play();
+        }, this.config.defaultFrequency);
+
+
+        //registerig the sound
+        this._registeredSounds[clapGuid] = {
+            guid: clapGuid,
+            type: this.config.sounds.clap,
+            sound : clapSound,
+            frequency: this.config.defaultFrequency,
+            interval: tempInterval,
+        };
+
+        //setting the last created sounds
+        this.lastCreatedSound = this._registeredSounds[clapGuid];
+
+        return clapGuid;
+    }
 }
 
 var gestureClient = {
     config:{
         hands: ['right', 'left'],
-        pressedThreshold: 15,
+        pressedThreshold: 0,
 
         //Leap Motions Constants
         heightMin: 20,
@@ -332,9 +526,8 @@ var gestureClient = {
 var UI = {
 
     config: {
-        bars : {bass: "bass", piano : "piano", kick: "kick", fluit: "fluit"},
+        bars : {bass: "bass", piano : "piano", kick: "kick", flute: "flute"},
         barClass : "bar",
-
     },
 
     //this function will set the height of the given bar
@@ -343,21 +536,34 @@ var UI = {
     },
 }
 
+var soundHistoryClient = {
+    UI:{
+        //Adds a list item to the history 
+        addNewSound: function(soundObj){
+            var newItem = $("<li guid='"+soundObj.guid+"' />").text(soundObj.type);
+
+            $("#sound-history ol").append(newItem);
+            console.log(soundObj);
+        }
+    }
+}
 
 var makeNoiseMenuClient = {
     //config
     config : {
-        //the required height for the menu to get activated
+        //the required height and position for the menu to get activated
         rightHandHeightForMenu : 150,
+        rightHandXForMenu:50,
+        rightHandXAngleMenu:-0.3,
         
         //the required depth for a click
         menuClickDepth: -30,
 
         //time for reseting the make noise menu
-        selectedTimeout: 15000,
+        selectedTimeout: 1000,
 
         //menu items
-        menuItem: ["kick", "bass", "piano", "fluit"],
+        menuItems: ["kick", "bass", "piano", "flute", "clap"],
     },
 
 
@@ -377,11 +583,16 @@ var makeNoiseMenuClient = {
     canBeActivated: function(){
         var now = new Date();
 
+        //checking if they waited the timeout
         if(this.lastSelected && now - this.lastSelected < this.config.selectedTimeout) return false;
 
-
+        //checking if they hand exist
         if(gestureClient.hands.right === undefined || !this.restarted) return false;
-        if(gestureClient.hands.right.palmPosition[1] > this.config.rightHandHeightForMenu)
+
+        //checking for valid position range
+        if(gestureClient.hands.right.palmPosition[1] > this.config.rightHandHeightForMenu &&
+            gestureClient.hands.right.palmPosition[0] > this.config.rightHandXForMenu &&
+            gestureClient.hands.right.direction[0] < this.config.rightHandXAngleMenu)
             return true;
         return false;
     },
@@ -417,11 +628,15 @@ var makeNoiseMenuClient = {
     //and call the setSelectedItem with the next index
     setDegree: function (direction){
         this.lp_direction = direction;
+        var itemCount = this.config.menuItems.length;
 
-        if(this.lp_direction > 0 ) this.selected_next = 0;
-        else if(this.lp_direction < 0 && this.lp_direction > -0.3 ) this.selected_next = 1;
-        else if(this.lp_direction < -0.3 && this.lp_direction > -0.5) this.selected_next = 2;
-        else this.selected_next = 3;
+        var newRange = changeRange(direction, 0, itemCount, 1,-1);
+        this.selected_next = Math.floor(newRange);
+
+        // if(this.lp_direction > 0 ) this.selected_next = 0;
+        // else if(this.lp_direction < 0 && this.lp_direction > -0.3 ) this.selected_next = 1;
+        // else if(this.lp_direction < -0.3 && this.lp_direction > -0.5) this.selected_next = 2;
+        // else this.selected_next = 3;
 
         if(this.selected_next != this.selected)
             this.UI.removeProgressBar();
@@ -451,7 +666,7 @@ var makeNoiseMenuClient = {
     //this function is the menu function to communicate to the sound client
     soundCreated : function(){
         var index = $("#create ul li.selected").index();
-        var type = this.config.menuItem[index];
+        var type = this.config.menuItems[index];
 
         soundClient.createNewSound(soundClient.config.sounds[type]);
     },

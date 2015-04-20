@@ -2,61 +2,41 @@ body{
     background-color:rgb(55, 55, 55);
 }
 
-.sounds-wrapper{
+.hidden{
+    display: none;
+}
+
+.config-wrapper{
     width: 1000px;
-    height: 100%;
-    margin: 0 auto;
+    height: 750px;
+    /*margin: 0 auto;*/
+    position: absolute;
+    left: 50%;
+    margin-left: -500px;
+    top: 50%;
+    margin-top: -350px;
 }
 
-.bar-wrapper{
-    display: inline-block;
-    background-color: rgb(21, 69, 90);
-    width: 200px;
-    height: 700px;
-    margin-left: 37px;
-    text-align: center;
-    overflow:hidden;
+.config-wrapper > div{
+    width: calc(100% - 20px);
+    height: calc(100% - 20px);
+    background-color: aliceblue;
+    position: absolute;
+    padding: 10px;
 }
 
-.bar-wrapper p{
-    font-size:30px;
-    font-family:Broadway;
-    color:white;
+#kick label{
+    display: block;
+    font-size: 25px;
+    margin-left: 20px;
+    margin-top: 20px;    
 }
 
-
-.bar{
-    width: 100px;
-    height: 300px;
-    background-color: rgb(142, 13, 23);
-    margin: 0 auto;
-}
-
-#keyboard{
-    width: 1000px;
-    height: 200px;
-    margin: 0 auto;
-    background-color: rgb(87, 87, 87);
-    padding-top: 10px;
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-}
-
-.key{
-    width: calc( 1000px / 16 );
-    height: 100%;
-    background-color: rgb(113, 113, 113);
-    display: inline-block;
-}
-
-.vol-bar{
-    width: 300px;
-    transform: rotate(90deg);
-    position: relative;
-    top: 255px;
-    left: -152px;
+#kick input{
+    width: 75%;
+    margin-left: 100px;
+    margin-top: 50px;
+    margin-bottom: 50px;
 }
 
 #create{
@@ -68,20 +48,20 @@ body{
     margin-top: -230px;
 }
 
-#create h1{
+.list-title{
     text-align: center;
     border-bottom: 2px solid white;
     padding-bottom: 0.67em;
     margin-bottom: 0;   
 }
 
-#create ul{
+.side-list{
     margin:0;
     padding:0;
     list-style-type: none;
 }
 
-#create ul li{
+.side-list li{
     padding: 10px;
     font-size: 20pt;
     text-align: center;
@@ -91,16 +71,32 @@ body{
     overflow: :hidden;
 }
 
-#create ul li.selected{
+.side-list li.selected{
     background-color: gainsboro;
 }
 
-#create ul li svg {
+.side-list li svg {
     position: absolute;
 }
 
-#create ul li circle{
+.side-list li circle{
     fill: rgba(255,255,255,0.75);
+}
+
+
+#sound-history{
+    float: right;
+    background-color: orange;
+    border: 5px solid white;
+    width: 200px;
+}
+
+#sound-history ol li{
+    padding:2px;
+}
+
+#sound-history h1.list-title{
+    font-size: 26px;
 }
 
 /* Progress bar styling */
@@ -143,3 +139,40 @@ body{
     -moz-animation: move 2s linear infinite;
     overflow: hidden;
 }
+
+input[type=range] {
+  -webkit-appearance: none;
+  margin: 10px 0;
+  
+}
+input[type=range]:focus {
+  outline: none;
+}
+input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 5px;
+  cursor: pointer;
+  animate: 0.2s;
+  box-shadow: 0px 0px 0px #000000, 0px 0px 0px #0d0d0d;
+  border-radius: 20px;
+  background: #545454;
+  border: 0px solid #000101;
+}
+input[type=range]::-webkit-slider-thumb {
+  box-shadow: 0px 0px 0px #000000, 0px 0px 0px #0d0d0d;
+  border: 0px solid #000000;
+  height: 25px;
+  width: 25px;
+  border-radius: 50%;
+  /*background: #EAC21A;*/
+  background: #EA2C1F;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -10px;
+}
+input[type=range]:active::-webkit-slider-thumb {
+  height: 35px;
+  width: 35px;
+  margin-top:-15px;
+}
+    
