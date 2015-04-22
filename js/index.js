@@ -16,6 +16,14 @@ $(document).ready(function () {
             soundClient.globalSounds.clap.play();
         }
 
+        if(gestureClient.gestures.isBass()){
+            soundClient.globalSounds.bass.play();
+        }
+
+        if(gestureClient.gestures.isKick()){
+            soundClient.globalSounds.kick.play();
+        }
+
         // if(configurationClient.canBeActivated()){
         //     configurationClient.activate();
 
@@ -841,12 +849,16 @@ var gestureClient = {
 
     data: {},
     hands: { 'right': undefined, 'left': undefined },
+    lastTenFramesRightHand : [],
+    lastTenFramesLeftHand : [],
 
 
     //updates the lp_data
     update: function (lp_data) {
+        
         if(!lp_data.valid) return;
         if(lp_data.confidence < 0.5) return;
+        // console.log(lp_data);
         this.data = lp_data;
         if (lp_data.hands.length == 0) {
             this.hands.right = undefined;
@@ -859,6 +871,28 @@ var gestureClient = {
         else if(lp_data.hands.length == 2){
             this.hands[lp_data.hands[0].type] = lp_data.hands[0];
             this.hands[lp_data.hands[1].type] = lp_data.hands[1];
+        }
+
+        if(this.hands.right != undefined){
+
+            this.lastTenFramesRightHand.push(this.hands.right);
+
+            if(this.lastTenFramesRightHand.length > 10)
+                this.lastTenFramesRightHand.shift();
+        }
+        else{
+            this.lastTenFramesRightHand.shift();    
+        }
+
+        if(this.hands.left != undefined){
+
+            this.lastTenFramesLeftHand.push(this.hands.left);
+
+            if(this.lastTenFramesLeftHand.length > 10)
+                this.lastTenFramesLeftHand.shift();
+        }
+        else{
+            this.lastTenFramesLeftHand.shift();
         }
     },
 
@@ -882,21 +916,92 @@ var gestureClient = {
                     }
                     return false;
 
-                    
-                    
                 }
                 return false;
             }
         },
 
         isBass: function(){
+            if(gestureClient.lastTenFramesRightHand.length != 10) return false;
 
+            //look at the last 5 frames
+            if(gestureClient.lastTenFramesRightHand[9].palmVelocity[1] > 0 && gestureClient.lastTenFramesRightHand[9].palmVelocity[1] > gestureClient.lastTenFramesRightHand[8].palmVelocity[1] &&
+                gestureClient.lastTenFramesRightHand[8].palmVelocity[1] < 0 && gestureClient.lastTenFramesRightHand[8].palmVelocity[1] > gestureClient.lastTenFramesRightHand[7].palmVelocity[1] &&
+                gestureClient.lastTenFramesRightHand[7].palmVelocity[1] < 0 && gestureClient.lastTenFramesRightHand[7].palmVelocity[1] > gestureClient.lastTenFramesRightHand[6].palmVelocity[1] &&
+                gestureClient.lastTenFramesRightHand[6].palmVelocity[1] < 0 && gestureClient.lastTenFramesRightHand[6].palmVelocity[1] > gestureClient.lastTenFramesRightHand[5].palmVelocity[1] &&
+                gestureClient.lastTenFramesRightHand[5].palmVelocity[1] < 0 && gestureClient.lastTenFramesRightHand[5].palmVelocity[1] < -1000){
+
+                //velocity matches the pattern
+                //check the position
+                // no need to check the positon, the velocity is enough
+
+                return true;
+            }
+            return false;
+
+
+
+
+            // // look at the last 3 frames
+
+            // // check the velocity
+            // if(gestureClient.lastTenFramesRightHand[9].palmVelocity[1] > 400 &&
+            //     (gestureClient.lastTenFramesRightHand[8].palmVelocity[1] > -100 && gestureClient.lastTenFramesRightHand[8].palmVelocity[1] < 100) &&
+            //     gestureClient.lastTenFramesRightHand[7].palmVelocity[1] < -400){
+
+            //     // if velocity was okay, check the location
+            //     return true;
+
+            // } 
+            // return false;
+
+
+
+
+            // //finding the min y of the last 10 frames
+            // var minY = 10000;
+            // var minYInd = -1;
+            // for(var i=0;i<gestureClient.lastTenFramesRightHand.length;i++){
+            //     if(gestureClient.lastTenFramesRightHand[i].palmPosition[1] < minY){
+            //         minY = gestureClient.lastTenFramesRightHand[i].palmPosition[1];
+            //         minYInd = i;
+            //     }
+            // }
+
+            // // console.log({minY:minY,frames:gestureClient.lastTenFramesRightHand });
+
+
+            // for(var i=0;i<minYInd;i++){
+            //     if(gestureClient.lastTenFramesRightHand[i].palmPosition[1] < minY) return false;
+            //     if(gestureClient.lastTenFramesRightHand[i].palmPosition[1] < gestureClient.lastTenFramesRightHand[i+1].palmPosition[1]) return false;
+            // }
+
+            // for(var i=minYInd+1;i<gestureClient.lastTenFramesRightHand.length;i++){
+            //     if(gestureClient.lastTenFramesRightHand[i].palmPosition[1] < minY) return false;
+            //     if(gestureClient.lastTenFramesRightHand[i].palmPosition[1] < gestureClient.lastTenFramesRightHand[i-1].palmPosition[1]) return false;
+            // }
+
+            // return true;
         },
 
         isKick: function(){
+            if(gestureClient.lastTenFramesLeftHand.length != 10) return false;
 
+            //look at the last 5 frames
+            if(gestureClient.lastTenFramesLeftHand[9].palmVelocity[1] > 0 && gestureClient.lastTenFramesLeftHand[9].palmVelocity[1] > gestureClient.lastTenFramesLeftHand[8].palmVelocity[1] &&
+                gestureClient.lastTenFramesLeftHand[8].palmVelocity[1] < 0 && gestureClient.lastTenFramesLeftHand[8].palmVelocity[1] > gestureClient.lastTenFramesLeftHand[7].palmVelocity[1] &&
+                gestureClient.lastTenFramesLeftHand[7].palmVelocity[1] < 0 && gestureClient.lastTenFramesLeftHand[7].palmVelocity[1] > gestureClient.lastTenFramesLeftHand[6].palmVelocity[1] &&
+                gestureClient.lastTenFramesLeftHand[6].palmVelocity[1] < 0 && gestureClient.lastTenFramesLeftHand[6].palmVelocity[1] > gestureClient.lastTenFramesLeftHand[5].palmVelocity[1] &&
+                gestureClient.lastTenFramesLeftHand[5].palmVelocity[1] < 0 && gestureClient.lastTenFramesLeftHand[5].palmVelocity[1] < -1000){
+
+                //velocity matches the pattern
+                //check the position
+                // no need to check the positon, the velocity is enough
+
+                return true;
+            }
+            return false;
         },
-
 
     },
 
