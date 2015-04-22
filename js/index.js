@@ -72,6 +72,7 @@ var app = {
     setup:function(){
         $("#kick-frequency").on("input change",configurationClient.kickClient.eventHanders.frequencyUpdated);
         $("#kick-delay").on("input change",configurationClient.kickClient.eventHanders.delayUpdated);
+        $("#kick-reverb").on("input change", configurationClient.kickClient.eventHanders.reverbUpdated);
 
 
     }
@@ -80,12 +81,18 @@ var app = {
 var configurationClient = {
     config : {
         minDepthForSelect : 30,
+        leftHandDirectionRange:{
+            min:-0.8,
+            max: 0.9
+        },
     },
 
     currentSound : undefined,
     is_active: false,
     selected: -1,
     selected_next: -1,
+    selected_item_is_lock: false,
+
 
     canBeActivated: function(){
 
@@ -110,6 +117,8 @@ var configurationClient = {
     },
 
     setDegree:function(direction){
+        if(this.selected_item_is_lock) return;
+
         //getting the number of the inputs in the current config panel
         var inputCount = $("#"+this.currentSound.type + " input").length;
         
@@ -124,13 +133,49 @@ var configurationClient = {
     setDepth : function(depth){
         if(depth < this.config.minDepthForSelect){
             if(this.canChangeConfiguration()){
+                //adding the lock icon to the locked item
+                this.UI.setLockedItem();
+
+                //locking the item that is being changed
+                this.selected_item_is_lock = true;
+
+                //actually setting the config
                 this.setConfig();
             }
+        }
+        else{
+            this.selected_item_is_lock = false;
+            this.UI.unlockItem();
         }
     },
 
     setConfig: function(){
-        
+        //reroute the controll to the appropriate client
+        switch (this.currentSound.type){
+            case "kick":
+                this.kickClient.setConfig();
+                break;
+
+            case "bass":
+                this.bassClient.setConfig();
+                break;
+            
+            case "piano":
+                this.pianoClient.setConfig();
+                break;
+            
+            case "flute":
+                this.fluteClient.setConfig();
+                break;
+            
+            case "clap":
+                this.clapClient.setConfig();
+                break;
+
+            default:
+                alert("Something went wrong!");
+                break;
+        }
     },
 
     //checks the angle of the left hand
@@ -165,21 +210,88 @@ var configurationClient = {
         deactivate: function(){
             $(".config-wrapper").removeClass("active");
             $(".config-wrapper > div:not(.hidden) label").removeClass("red-active");
+            $(".config-wrapper > div:not(.hidden) label img").remove();
         },
 
         setSelectedItem: function(index){
 
             //removing the previously active element
             $("#"+ configurationClient.currentSound.type + " label").removeClass("red-active");
+            $("#"+ configurationClient.currentSound.type + " label img").remove();
+
+            //applying the new styling
             var label = $($("#"+ configurationClient.currentSound.type + " label")[index]);
-            if(label.class != "red-active")
+            if(label.class != "red-active"){
                 label.addClass("red-active");
-        }
+                label.append("<img src='img/hand.png' alt='hand' />");
+            }   
+        },
+
+        setLockedItem: function(){
+            if(configurationClient.selected_item_is_lock) return;
+
+            var index = configurationClient.selected;
+            var label = $($("#"+ configurationClient.currentSound.type + " label")[index]);
+            label.append("<img src='img/lock.png' alt='locked' class='lock' />");
+        },
+
+        unlockItem: function(){
+            $(".config-wrapper > div > label img.lock").remove();
+        },
     },
 
     kickClient: {
         config: {
-            attributes: {delay:"delay", frequency:"frequency"},
+            attributes: {delay:"delay", frequency:"frequency", reverb:"reverb"},
+            attributes_order: ["frequency", "delay", "reverb"],
+            ranges: {
+                delay: {
+                    min:0,
+                    max:5000,
+                },
+                frequency:{
+                    min:20,
+                    max:5000
+                },
+                reverb:{
+                    min:0,
+                    max:1,
+                }
+            },
+        },
+
+        setConfig: function(){
+            // find the min and max of the selected item
+            var range = this.config.ranges[this.config.attributes_order[configurationClient.selected]];
+            // console.log(range);
+            
+            //change the range of the hand diretion to a number within the range
+            var direction = gestureClient.hands.left.direction[0];
+            var val = changeRange(direction, range.min, range.max, configurationClient.config.leftHandDirectionRange.min, configurationClient.config.leftHandDirectionRange.max);
+
+            if(val < range.min) val = range.min;
+            if(val > range.max) val = range.max;
+
+            // updating the sound configuration
+            this.upadateSoundConfig(val);
+
+            // update the UI and the slider
+            this.UI.setConfig(val);
+        },
+
+        upadateSoundConfig: function(val){
+            //update not ever frame, but every 10 frame
+            if (gestureClient.data.id % 10 != 0) return;
+
+            //if we are updating the frequency
+            if(this.config.attributes_order[configurationClient.selected] == "frequency"){
+                configurationClient.currentSound.interval.interval = val;
+            }
+            else{
+
+            }
+            // console.log(gestureClient.data.id);
+            // console.log(configurationClient.currentSound.args);
         },
 
         eventHanders:{
@@ -189,17 +301,31 @@ var configurationClient = {
 
             delayUpdated: function(e){
                 configurationClient.kickClient.UI.updateDelay(e.target.value);
+            },
+
+            reverbUpdated: function(e){
+                configurationClient.kickClient.UI.updateReverb(e.target.value);  
             }
+
+
         },
 
         UI:{
+            setConfig:function(val){
+                $("#kick-" + configurationClient.kickClient.config.attributes_order[configurationClient.selected]).val(val);
+            },
+
             updateFrequency: function(f){
                 $("#kick-frquency-value").text(f);
             },
 
             updateDelay: function(d){
                 $("#kick-delay-value").text(d);  
-            }
+            },
+
+            updateReverb: function(d){
+                $("#kick-reverb-value").text(d);                  
+            },
         },
     },
 
@@ -405,6 +531,9 @@ var soundClient = {
             kickSound.play(soundClient._registeredSounds[kickGuid].args);
         }, this.config.defaultFrequency);
 
+        //updating the song and setting the inteval
+        this._registeredSounds[kickGuid].interval = tempInterval;
+
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[kickGuid];
 
@@ -453,6 +582,9 @@ var soundClient = {
             bassSound.play(soundClient._registeredSounds[bassGuid].args);
         },this.config.defaultFrequency);
 
+        //updating the song and setting the inteval
+        this._registeredSounds[bassGuid].interval = tempInterval;
+
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[bassGuid];
 
@@ -482,6 +614,8 @@ var soundClient = {
             pianoSound.play(soundClient._registeredSounds[pianoGuid].args);
         },this.config.defaultFrequency);
 
+        //updating the song and setting the inteval
+        this._registeredSounds[pianoGuid].interval = tempInterval;
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[pianoGuid];
@@ -531,6 +665,9 @@ var soundClient = {
             fluteSound.play(soundClient._registeredSounds[fluteGuid].args);
         },this.config.defaultFrequency);
 
+        //updating the song and setting the inteval
+        this._registeredSounds[fluteGuid].interval = tempInterval;
+
         //setting the last created sound
         this.lastCreatedSound = this._registeredSounds[fluteGuid];
 
@@ -562,6 +699,9 @@ var soundClient = {
         tempInterval = setVariableInterval(function () {
             clapSound.play(soundClient._registeredSounds[clapGuid].args);
         }, this.config.defaultFrequency);
+
+        //updating the song and setting the inteval
+        this._registeredSounds[clapGuid].interval = tempInterval;
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[clapGuid];

@@ -35,6 +35,12 @@ body{
     padding: 10px;
 }
 
+.config-wrapper > div > label > img{
+    margin-left: 10px;
+    top: 12px;
+    position: relative;
+}
+
 #kick > h1{
     text-align: center;
 }
