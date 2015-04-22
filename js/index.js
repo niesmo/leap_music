@@ -4,25 +4,31 @@ $(document).ready(function () {
     app.setup();
    
     Leap.loop(function (frame) {
+
+
         gestureClient.update(frame);
 
         // if (gestureClient.isLeftIndexFingerPressed()) {
         //     app.leftIndexPressed();        
         // }
 
-        if(configurationClient.canBeActivated()){
-            configurationClient.activate();
-
-            //set the degree of the hand and the config item
-            configurationClient.setDegree(gestureClient.hands.left.direction[1]);
-
-            // set the depth of the hand for the user to be able to change the configuration
-            configurationClient.setDepth(gestureClient.hands.left.palmPosition[2]);
-
+        if(gestureClient.gestures.isClap()){
+            soundClient.globalSounds.clap.play();
         }
-        else{
-            configurationClient.deactivate();
-        }
+
+        // if(configurationClient.canBeActivated()){
+        //     configurationClient.activate();
+
+        //     //set the degree of the hand and the config item
+        //     configurationClient.setDegree(gestureClient.hands.left.direction[1]);
+
+        //     // set the depth of the hand for the user to be able to change the configuration
+        //     configurationClient.setDepth(gestureClient.hands.left.palmPosition[2]);
+
+        // }
+        // else{
+        //     configurationClient.deactivate();
+        // }
 
 
         //activating the menu for the make noise
@@ -70,10 +76,11 @@ var app = {
 
     //sets up all the necessary events for the app
     setup:function(){
-        $("#kick-frequency").on("input change",configurationClient.kickClient.eventHanders.frequencyUpdated);
-        $("#kick-delay").on("input change",configurationClient.kickClient.eventHanders.delayUpdated);
-        $("#kick-reverb").on("input change", configurationClient.kickClient.eventHanders.reverbUpdated);
+        //setup of other clients
+        soundClient.setup();
 
+        // $("#kick-frequency").on("input change",configurationClient.kickClient.eventHanders.frequencyUpdated);
+        $("#kick-reverb").on("input change", configurationClient.kickClient.eventHanders.reverbUpdated);
 
     }
 }
@@ -92,6 +99,92 @@ var configurationClient = {
     selected: -1,
     selected_next: -1,
     selected_item_is_lock: false,
+
+    globalSoundsConfiguration:{
+        soundDuration: 30000,
+        kick:{
+            source: 'assets/sounds/kick.mp3',
+            reverb:{
+                impulse: 'assets/sounds/longhall.wav',
+                wet: 0.01,
+            }
+        },
+        kickFrequency: 520,
+
+        bass:{
+            source: 'sine',
+            volume: 1.5,
+            globalReverb: true,
+            env: {
+                attack: 0.2,
+                decay: .1,
+                sustain: .9,
+                hold: .4,
+                release: .1
+            },
+            pitch : 'C2',
+        },
+        bassFrequency: 520,
+
+        piano:{
+            source : 'square', 
+            env : {
+                attack : .01, 
+                decay : .005, 
+                sustain : .2, 
+                hold : .015, 
+                release : .3
+            }, 
+            filter : {
+                type : 'lowpass', 
+                frequency : 1200, 
+                q : 8.5, 
+                env : {
+                    attack : .2, 
+                    frequency : 600
+                }
+            }
+        },
+        pianoFrequency: 500,
+
+        flute:{
+            source : 'square', 
+            env : {
+                attack : .015, 
+                decay : .002, 
+                sustain : .5, 
+                hold : 0.5, 
+                release : .3
+            }, 
+            filter : {
+                type : 'lowpass', 
+                frequency : 600, 
+                q : 7, 
+                env : { 
+                    attack : .7, 
+                    frequency : 1600
+                }
+            }, 
+            vibrato : {
+                attack : 1, 
+                speed : 1, 
+                magnitude : 5 
+            }
+        },
+        flutePitch:"D4",
+        fluteFrequency: 500,
+
+        clap:{
+            source : "assets/sounds/clap.wav",
+            reverb: {
+                impulse: "assets/sounds/longhall.wav",
+                wet: 0.01,
+            }
+        },
+        clapFrequency : 916.6666,
+
+        // TODO, do this for all the sounds
+    },
 
 
     canBeActivated: function(){
@@ -184,6 +277,7 @@ var configurationClient = {
     },
 
     setSelectedItem: function(index){
+        if(this.selected == index) return;
         this.selected = index;
         this.UI.setSelectedItem(index);
     },
@@ -242,19 +336,15 @@ var configurationClient = {
 
     kickClient: {
         config: {
-            attributes: {delay:"delay", frequency:"frequency", reverb:"reverb"},
-            attributes_order: ["frequency", "delay", "reverb"],
+            attributes: {/*frequency:"frequency",*/ reverb:"reverb"},
+            attributes_order: [/*"frequency",*/"reverb"],
             ranges: {
-                delay: {
-                    min:0,
-                    max:5000,
-                },
-                frequency:{
+                /*frequency:{
                     min:20,
                     max:5000
-                },
+                },*/
                 reverb:{
-                    min:0,
+                    min:0.01,
                     max:1,
                 }
             },
@@ -287,8 +377,18 @@ var configurationClient = {
             if(this.config.attributes_order[configurationClient.selected] == "frequency"){
                 configurationClient.currentSound.interval.interval = val;
             }
+            //setting the reverb
             else{
+                //create a new sound and replace it with the sound in the currecnt sound
+                var newKick = new Wad({
+                    source: 'assets/sounds/kick.mp3',
+                    reverb: {
+                        impulse: 'assets/sounds/longhall.wav',
+                        wet: val
+                    }
+                });
 
+                configurationClient.currentSound.sound = newKick;
             }
             // console.log(gestureClient.data.id);
             // console.log(configurationClient.currentSound.args);
@@ -297,10 +397,6 @@ var configurationClient = {
         eventHanders:{
             frequencyUpdated: function(e){
                 configurationClient.kickClient.UI.updateFrequency(e.target.value);
-            },
-
-            delayUpdated: function(e){
-                configurationClient.kickClient.UI.updateDelay(e.target.value);
             },
 
             reverbUpdated: function(e){
@@ -319,10 +415,6 @@ var configurationClient = {
                 $("#kick-frquency-value").text(f);
             },
 
-            updateDelay: function(d){
-                $("#kick-delay-value").text(d);  
-            },
-
             updateReverb: function(d){
                 $("#kick-reverb-value").text(d);                  
             },
@@ -330,15 +422,27 @@ var configurationClient = {
     },
 
     bassClient: {
+        setConfig: function(){
+
+        }
     },
 
     pianoClient: {
+        setConfig: function(){
+
+        }
     },
 
     fluteClient: {
+        setConfig: function(){
+
+        }
     },
 
     clapClient: {
+        setConfig: function(){
+
+        }
     }
 }
 
@@ -440,9 +544,9 @@ var musicClient = {
     //will create a beat
     createKick: function (freq) {
         var kick = new Wad({
-            source: 'assets/songs/kick.mp3',
+            source: 'assets/sounds/kick.mp3',
             reverb: {
-                impulse: 'assets/songs/longhall.wav',
+                impulse: 'assets/sounds/longhall.wav',
                 wet: .9
             }
         });
@@ -463,6 +567,34 @@ var soundClient = {
     config: {
         sounds: {kick:"kick", bass:"bass", piano:"piano", flute:"flute", clap: "clap"},
         defaultFrequency : 1000,
+    },
+
+    setup: function(){
+        var clapSound = new Wad(configurationClient.globalSoundsConfiguration.clap);
+        this.globalSounds.clap = clapSound;
+
+        var kickSound = new Wad(configurationClient.globalSoundsConfiguration.kick);
+        this.globalSounds.kick = kickSound;
+
+        var bassSound = new Wad(configurationClient.globalSoundsConfiguration.bass);
+        this.globalSounds.bass = bassSound;
+
+        var pianoSound = new Wad(configurationClient.globalSoundsConfiguration.piano);
+        this.globalSounds.piano = pianoSound;
+
+        var fluteSound = new Wad(configurationClient.globalSoundsConfiguration.flute);
+        this.globalSounds.flute = fluteSound;
+
+
+        // TODO Do the same for all other sounds
+    },
+
+    globalSounds: {
+        clap:undefined,
+        kick:undefined,
+        bass:undefined,
+        flute:undefined,
+        piano:undefined
     },
 
     //local variables
@@ -507,32 +639,40 @@ var soundClient = {
 
     //Creates a kick noise
     createKick: function(){
-        //defining the sound and other variables
-        var kickSound = new Wad({
-            source: 'assets/sounds/kick.mp3',
-        });
-
+        //defining variables
         var kickGuid = guid();
 
         //registerig the sound
         this._registeredSounds[kickGuid] = {
             guid: kickGuid,
             type: this.config.sounds.kick,
-            sound : kickSound,
+            sound : soundClient.globalSounds.kick,
             frequency: this.config.defaultFrequency,
-            interval: tempInterval,
-            args: {},
+            // interval: tempInterval,
+            args: configurationClient.globalSoundsConfiguration.kick,
         };
 
 
-        var tempInterval;
-        //startig the interval that repeats the sound
-        tempInterval = setVariableInterval(function () {
-            kickSound.play(soundClient._registeredSounds[kickGuid].args);
-        }, this.config.defaultFrequency);
+        // var tempInterval;
+        // //startig the interval that repeats the sound
+        // tempInterval = setVariableInterval(function () {
+        //     soundClient._registeredSounds[kickGuid].sound.play(soundClient._registeredSounds[kickGuid].args);
+        // }, this.config.defaultFrequency);
+
+    
+        var count = (configurationClient.globalSoundsConfiguration.soundDuration / configurationClient.globalSoundsConfiguration.kickFrequency);
+        
+        for(var i=0;i<count;i++){
+
+            setTimeout(function(){
+                soundClient.globalSounds.kick.play();    
+            },i*configurationClient.globalSoundsConfiguration.kickFrequency);
+
+        }
+
 
         //updating the song and setting the inteval
-        this._registeredSounds[kickGuid].interval = tempInterval;
+        // this._registeredSounds[kickGuid].interval = tempInterval;
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[kickGuid];
@@ -542,48 +682,32 @@ var soundClient = {
 
     //creates a bass noise
     createBass: function(){
-        var bassSound = new Wad({
-            source: "assets/sounds/bass.wav",
-        });
-
-        var bassSound = new Wad({
-            source: 'sine',
-            volume: 1.5,
-            globalReverb: true,
-            env: {
-                attack: 0.2,
-                decay: .1,
-                sustain: .9,
-                hold: .4,
-                release: .1
-            }
-        });
-         
-        
-
         var bassGuid = guid();
 
         //registering the song
         this._registeredSounds[bassGuid] = {
             guid: bassGuid,
             type: this.config.sounds.bass,
-            sound : bassSound,
-            frequency: this.config.defaultFrequency,
-            interval: tempInterval,
-            args: {
-                pitch : 'C2'
-            },
+            sound : soundClient.globalSounds.bass,
+            frequency: configurationClient.globalSoundsConfiguration.bassFrequency,
+            // interval: tempInterval,
+            args: configurationClient.globalSoundsConfiguration.bass
         };
 
-        var tempInterval;
+        // var tempInterval;
 
         //starting the interval
-        tempInterval = setVariableInterval(function(){
-            bassSound.play(soundClient._registeredSounds[bassGuid].args);
-        },this.config.defaultFrequency);
+        // tempInterval = setVariableInterval(function(){
+        //     soundClient._registeredSounds[bassGuid].sound.play(soundClient._registeredSounds[bassGuid].args);
+        // },this.config.defaultFrequency);
+
+        var count = (configurationClient.globalSoundsConfiguration.soundDuration / configurationClient.globalSoundsConfiguration.bassFrequency);
+        for(var i=0;i<count;i++){
+            soundClient.globalSounds.bass.play({wait:(i/2)});
+        }
 
         //updating the song and setting the inteval
-        this._registeredSounds[bassGuid].interval = tempInterval;
+        // this._registeredSounds[bassGuid].interval = tempInterval;
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[bassGuid];
@@ -594,28 +718,33 @@ var soundClient = {
 
     //creates a piano sound
     createPiano: function(){
-        var pianoSound = new Wad(Wad.presets.piano);
         var pianoGuid = guid();
 
         //registering the sound
         this._registeredSounds[pianoGuid] = {
             guid: pianoGuid,
             type: this.config.sounds.piano,
-            sound : pianoSound,
-            frequency: this.config.defaultFrequency,
-            interval: tempInterval,
-            args:{}
+            sound : soundClient.globalSounds.piano,
+            frequency: configurationClient.globalSoundsConfiguration.pianoFrequency,
+            // interval: tempInterval,
+            args:configurationClient.globalSoundsConfiguration.piano
         };
 
-        var tempInterval;
+        // var tempInterval;
 
         //starting the time interval
-        tempInterval = setVariableInterval(function(){
-            pianoSound.play(soundClient._registeredSounds[pianoGuid].args);
-        },this.config.defaultFrequency);
+        // tempInterval = setVariableInterval(function(){
+        //     soundClient._registeredSounds[pianoGuid].sound.play(soundClient._registeredSounds[pianoGuid].args);
+        // },this.config.defaultFrequency);
+
+        var count = (configurationClient.globalSoundsConfiguration.soundDuration / configurationClient.globalSoundsConfiguration.pianoFrequency);
+        for(var i=0;i<count;i++){
+            soundClient.globalSounds.piano.play({wait:(i/2)});
+        }
+        
 
         //updating the song and setting the inteval
-        this._registeredSounds[pianoGuid].interval = tempInterval;
+        // this._registeredSounds[pianoGuid].interval = tempInterval;
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[pianoGuid];
@@ -626,47 +755,37 @@ var soundClient = {
 
     //creats a flute sound
     createFlute: function(){
-        var fluteSound = new Wad({source : 'square'});
         var fluteGuid =  guid();
 
         //registering the sound
         this._registeredSounds[fluteGuid] = {
             guid: fluteGuid,
             type: this.config.sounds.flute,
-            sound : fluteSound,
-            frequency: this.config.defaultFrequency,
-            interval: tempInterval,
-            args:{
-                volume: 0.5,
-                env : {
-                    attack : .015, 
-                    decay : .002, 
-                    sustain : .5, 
-                    hold : 2.5, 
-                    release : .3
-                }, 
-                filter : {
-                    type : 'lowpass', 
-                    frequency : 600, 
-                    q : 7, 
-                    env : { 
-                        attack : .7, 
-                        frequency : 1600
-                    }
-                },
-                pitch: "C4"
-            }
+            sound : soundClient.globalSounds.flute,
+            frequency: configurationClient.globalSoundsConfiguration.fluteFrequency,
+            // interval: tempInterval,
+            args:configurationClient.globalSoundsConfiguration.flute,
         };
 
-        var tempInterval;
+        // var tempInterval;
 
         //starting the time interval
-        tempInterval = setVariableInterval(function(){
-            fluteSound.play(soundClient._registeredSounds[fluteGuid].args);
-        },this.config.defaultFrequency);
+        // tempInterval = setVariableInterval(function(){
+        //     soundClient._registeredSounds[fluteGuid].sound.play(soundClient._registeredSounds[fluteGuid].args);
+        // },this.config.defaultFrequency);
+
+    
+        var count = (configurationClient.globalSoundsConfiguration.soundDuration / configurationClient.globalSoundsConfiguration.fluteFrequency);
+        for(var i=0;i<count;i++){
+            soundClient.globalSounds.flute.play({
+                wait:(i/2),
+                pitch: configurationClient.globalSoundsConfiguration.flutePitch,
+            });
+        }
+
 
         //updating the song and setting the inteval
-        this._registeredSounds[fluteGuid].interval = tempInterval;
+        // this._registeredSounds[fluteGuid].interval = tempInterval;
 
         //setting the last created sound
         this.lastCreatedSound = this._registeredSounds[fluteGuid];
@@ -697,7 +816,7 @@ var soundClient = {
         var tempInterval;
         //startig the interval that repeats the sound
         tempInterval = setVariableInterval(function () {
-            clapSound.play(soundClient._registeredSounds[clapGuid].args);
+            soundClient._registeredSounds[clapGuid].sound.play(soundClient._registeredSounds[clapGuid].args);
         }, this.config.defaultFrequency);
 
         //updating the song and setting the inteval
@@ -726,6 +845,8 @@ var gestureClient = {
 
     //updates the lp_data
     update: function (lp_data) {
+        if(!lp_data.valid) return;
+        if(lp_data.confidence < 0.5) return;
         this.data = lp_data;
         if (lp_data.hands.length == 0) {
             this.hands.right = undefined;
@@ -740,6 +861,45 @@ var gestureClient = {
             this.hands[lp_data.hands[1].type] = lp_data.hands[1];
         }
     },
+
+    // Gestures
+    gestures: {
+        lastClapTimestamp:new Date(),
+
+        isClap: function(){
+            if(gestureClient.hands.right != undefined && gestureClient.hands.left != undefined){
+                if(gestureClient.hands.right.palmNormal[0] < 0.96 &&
+                    gestureClient.hands.left.palmNormal[0]  > 0.96 &&
+                    gestureClient.hands.right.palmVelocity[0] < -100 &&
+                    gestureClient.hands.left.palmVelocity[0] > 100 &&
+                    gestureClient.hands.right.palmPosition[0] - gestureClient.hands.left.palmPosition[0] < 35){
+
+                    var now = new Date();
+
+                    if(now - this.lastClapTimestamp > 100){
+                        this.lastClapTimestamp = now;
+                        return true;
+                    }
+                    return false;
+
+                    
+                    
+                }
+                return false;
+            }
+        },
+
+        isBass: function(){
+
+        },
+
+        isKick: function(){
+
+        },
+
+
+    },
+
 
     //right hand functions
     //---------------------------------------

@@ -51,6 +51,7 @@ snare.setVolume(9)
 
 
 var oneLoop = function () {
+    console.log("Loop One");
     if ($('#hihats').hasClass('on')) {
         hat.play({ wait: beat * 0.5 })
         hat.play({ wait: beat * 1.5 })
@@ -192,6 +193,7 @@ var oneLoop = function () {
 }
 
 var twoLoop = function () {
+    console.log("Loop Two");
     if ($('#hihats').hasClass('on')) {
         hat.play({ wait: beat * 0.5 })
         hat.play({ wait: beat * 1.5 })
