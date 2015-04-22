@@ -1,9 +1,8 @@
 $(document).ready(function () {
-
     //setting up the events
     app.setup();
    
-    Leap.loop(function (frame) {
+    Leap.loop({enableGestures: true},function (frame) {
 
 
         gestureClient.update(frame);
@@ -24,19 +23,31 @@ $(document).ready(function () {
             soundClient.globalSounds.kick.play();
         }
 
-        // if(configurationClient.canBeActivated()){
-        //     configurationClient.activate();
+        if(gestureClient.gestures.isPiano()){
+            // soundClient.globalSounds.piano.play();
+            gestureClient.getKeysPressed();
+        }
 
-        //     //set the degree of the hand and the config item
-        //     configurationClient.setDegree(gestureClient.hands.left.direction[1]);
+        if(gestureClient.gestures.isFlute()){
+            soundClient.mapPressedPingersToPitches({},"left");
+            // soundClient.globalSounds.flute.play();
+        }
 
-        //     // set the depth of the hand for the user to be able to change the configuration
-        //     configurationClient.setDepth(gestureClient.hands.left.palmPosition[2]);
 
-        // }
-        // else{
-        //     configurationClient.deactivate();
-        // }
+
+        if(configurationClient.canBeActivated()){
+            configurationClient.activate();
+
+            //set the degree of the hand and the config item
+            configurationClient.setDegree(gestureClient.hands.left.direction[1]);
+
+            // set the depth of the hand for the user to be able to change the configuration
+            configurationClient.setDepth(gestureClient.hands.left.palmPosition[2]);
+
+        }
+        else{
+            configurationClient.deactivate();
+        }
 
 
         //activating the menu for the make noise
@@ -95,14 +106,14 @@ var app = {
 
 var configurationClient = {
     config : {
-        minDepthForSelect : 30,
+        minDepthForSelect : 60,
         leftHandDirectionRange:{
             min:-0.8,
             max: 0.9
         },
     },
 
-    currentSound : undefined,
+    currentSoundType : "kick",
     is_active: false,
     selected: -1,
     selected_next: -1,
@@ -121,7 +132,7 @@ var configurationClient = {
 
         bass:{
             source: 'sine',
-            volume: 1.5,
+            volume: 1,
             globalReverb: true,
             env: {
                 attack: 0.2,
@@ -151,7 +162,8 @@ var configurationClient = {
                     attack : .2, 
                     frequency : 600
                 }
-            }
+            },
+            pitch:"C4",
         },
         pianoFrequency: 500,
 
@@ -189,16 +201,19 @@ var configurationClient = {
                 wet: 0.01,
             }
         },
-        clapFrequency : 916.6666,
-
-        // TODO, do this for all the sounds
+        clapFrequency : 960,
     },
-
 
     canBeActivated: function(){
 
         if (gestureClient.hands.left === undefined) return false;
-        if (this.currentSound == undefined) return false;
+        if(gestureClient.hands.left.palmPosition[2] > 100 ) return false;
+        var handSpeed = Math.sqrt(Math.pow(gestureClient.hands.left.palmVelocity[0],2) +
+            Math.pow(gestureClient.hands.left.palmVelocity[1],2) +
+            Math.pow(gestureClient.hands.left.palmVelocity[2],2));
+        // console.log(handSpeed);
+        // if (this.currentSound == undefined) return false;
+        if(handSpeed > 300 || handSpeed < -300) return false;
 
         return true;
     },
@@ -221,11 +236,17 @@ var configurationClient = {
         if(this.selected_item_is_lock) return;
 
         //getting the number of the inputs in the current config panel
-        var inputCount = $("#"+this.currentSound.type + " input").length;
+        var inputCount = $("#"+this.currentSoundType + " input").length;
         
 
-        var inputIndex = changeRange(direction, 0, inputCount, 1,-1);
+        var inputIndex = changeRange(direction, 0, inputCount, 0.8,-0.8);
+
+        if(inputIndex > inputCount-1) inputIndex = inputCount - 1;
+        if(inputIndex < 0) inputIndex = 0;
+        
+        
         this.selected_next = Math.floor(inputIndex);
+        // console.log(direction, this.selected_next ,inputCount);
 
         //selected the selected item in the UI
         this.setSelectedItem(this.selected_next);
@@ -251,8 +272,11 @@ var configurationClient = {
     },
 
     setConfig: function(){
+        // console.log(this.selected);
         //reroute the controll to the appropriate client
-        switch (this.currentSound.type){
+        if(!this.selected_item_is_lock) return;
+
+        switch (this.currentSoundType){
             case "kick":
                 this.kickClient.setConfig();
                 break;
@@ -285,13 +309,14 @@ var configurationClient = {
     },
 
     setSelectedItem: function(index){
-        if(this.selected == index) return;
+        // if(this.selected == index) return;
         this.selected = index;
         this.UI.setSelectedItem(index);
     },
 
     setActiveSound: function(cs){
         this.currentSound = cs;
+        this.currentSoundType = cs.type;
 
         //changing the config panel
         this.UI.setConfigPanel(cs.type);
@@ -318,11 +343,11 @@ var configurationClient = {
         setSelectedItem: function(index){
 
             //removing the previously active element
-            $("#"+ configurationClient.currentSound.type + " label").removeClass("red-active");
-            $("#"+ configurationClient.currentSound.type + " label img").remove();
+            $("#"+ configurationClient.currentSoundType + " label").removeClass("red-active");
+            $("#"+ configurationClient.currentSoundType + " label img").remove();
 
             //applying the new styling
-            var label = $($("#"+ configurationClient.currentSound.type + " label")[index]);
+            var label = $($("#"+ configurationClient.currentSoundType + " label")[index]);
             if(label.class != "red-active"){
                 label.addClass("red-active");
                 label.append("<img src='img/hand.png' alt='hand' />");
@@ -333,7 +358,7 @@ var configurationClient = {
             if(configurationClient.selected_item_is_lock) return;
 
             var index = configurationClient.selected;
-            var label = $($("#"+ configurationClient.currentSound.type + " label")[index]);
+            var label = $($("#"+ configurationClient.currentSoundType + " label")[index]);
             label.append("<img src='img/lock.png' alt='locked' class='lock' />");
         },
 
@@ -344,13 +369,13 @@ var configurationClient = {
 
     kickClient: {
         config: {
-            attributes: {/*frequency:"frequency",*/ reverb:"reverb"},
-            attributes_order: [/*"frequency",*/"reverb"],
+            attributes: {frequency:"frequency", reverb:"reverb"},
+            attributes_order: ["frequency","reverb"],
             ranges: {
-                /*frequency:{
-                    min:20,
+                frequency:{
+                    min:100,
                     max:5000
-                },*/
+                },
                 reverb:{
                     min:0.01,
                     max:1,
@@ -359,6 +384,8 @@ var configurationClient = {
         },
 
         setConfig: function(){
+            // console.log(configurationClient.selected);
+
             // find the min and max of the selected item
             var range = this.config.ranges[this.config.attributes_order[configurationClient.selected]];
             // console.log(range);
@@ -371,23 +398,27 @@ var configurationClient = {
             if(val > range.max) val = range.max;
 
             // updating the sound configuration
-            this.upadateSoundConfig(val);
+            //not every cycle, but every now and then
+            if (gestureClient.data.id % 10 != 0)
+                this.upadateSoundConfig(val);
 
             // update the UI and the slider
             this.UI.setConfig(val);
         },
 
         upadateSoundConfig: function(val){
-            //update not ever frame, but every 10 frame
-            if (gestureClient.data.id % 10 != 0) return;
+            // //update not ever frame, but every 10 frame
+            // if (gestureClient.data.id % 10 != 0) return;
 
             //if we are updating the frequency
             if(this.config.attributes_order[configurationClient.selected] == "frequency"){
-                configurationClient.currentSound.interval.interval = val;
+                // configurationClient.currentSound.interval.interval = val;
+                configurationClient.globalSoundsConfiguration.kickFrequency = val;
+                this.UI.updateFrequency(val);
             }
             //setting the reverb
             else{
-                //create a new sound and replace it with the sound in the currecnt sound
+                // //create a new sound and replace it with the sound in the currecnt sound
                 var newKick = new Wad({
                     source: 'assets/sounds/kick.mp3',
                     reverb: {
@@ -396,7 +427,12 @@ var configurationClient = {
                     }
                 });
 
-                configurationClient.currentSound.sound = newKick;
+                // configurationClient.currentSound.sound = newKick;
+
+                configurationClient.globalSoundsConfiguration.kick.reverb.wet = val;
+                soundClient.globalSounds.kick = newKick;
+
+                this.UI.updateReverb(val);
             }
             // console.log(gestureClient.data.id);
             // console.log(configurationClient.currentSound.args);
@@ -410,8 +446,6 @@ var configurationClient = {
             reverbUpdated: function(e){
                 configurationClient.kickClient.UI.updateReverb(e.target.value);  
             }
-
-
         },
 
         UI:{
@@ -420,36 +454,50 @@ var configurationClient = {
             },
 
             updateFrequency: function(f){
-                $("#kick-frquency-value").text(f);
+                $("#kick-frquency-value").text(Math.floor(f));
             },
 
             updateReverb: function(d){
-                $("#kick-reverb-value").text(d);                  
+                $("#kick-reverb-value").text(Math.floor(d));                  
             },
         },
     },
 
     bassClient: {
+        config: {
+            attributes: {frequency:"frequency", source:"source", volume:"volume", attack:"attack", decay:"decay", sustain: "sustain", hold: "hold", release:"release", pitch:"pitch"},
+            attributes_order: ["frequency","source", "volume", "attack","decay","sustain", "hold","release","pitch"],
+            ranges: {
+                frequency:{
+                    min:100,
+                    max:5000
+                },
+                source:{
+                    min:0.01,
+                    max:1,
+                }
+            },
+        },
         setConfig: function(){
-
+            console.log(configurationClient.selected);
         }
     },
 
     pianoClient: {
         setConfig: function(){
-
+            console.log(configurationClient.selected);
         }
     },
 
     fluteClient: {
         setConfig: function(){
-
+            console.log(configurationClient.selected);
         }
     },
 
     clapClient: {
         setConfig: function(){
-
+            console.log(configurationClient.selected);
         }
     }
 }
@@ -608,7 +656,6 @@ var soundClient = {
     //local variables
     _registeredSounds : new Array(),
     lastCreatedSound: {},
-
 
     //create new sound
     createNewSound: function(soundType){
@@ -804,37 +851,82 @@ var soundClient = {
 
     //creates a clap sound
     createClap: function(){
-        //defining the sound and other variables
-        var clapSound = new Wad({
-            source: 'assets/sounds/clap.wav',
-        });
-
         var clapGuid = guid();
 
         //registerig the sound
         this._registeredSounds[clapGuid] = {
             guid: clapGuid,
             type: this.config.sounds.clap,
-            sound : clapSound,
-            frequency: this.config.defaultFrequency,
-            interval: tempInterval,
-            args: {}
+            sound : soundClient.globalSounds.clap,
+            frequency: configurationClient.globalSoundsConfiguration.clapFrequency,
+            // interval: tempInterval,
+            args: configurationClient.globalSoundsConfiguration.clap
         };
 
-        var tempInterval;
+        // var tempInterval;
         //startig the interval that repeats the sound
-        tempInterval = setVariableInterval(function () {
-            soundClient._registeredSounds[clapGuid].sound.play(soundClient._registeredSounds[clapGuid].args);
-        }, this.config.defaultFrequency);
+        // tempInterval = setVariableInterval(function () {
+        //     soundClient._registeredSounds[clapGuid].sound.play(soundClient._registeredSounds[clapGuid].args);
+        // }, this.config.defaultFrequency);
 
         //updating the song and setting the inteval
-        this._registeredSounds[clapGuid].interval = tempInterval;
+        // this._registeredSounds[clapGuid].interval = tempInterval;
+
+         var count = (configurationClient.globalSoundsConfiguration.soundDuration / configurationClient.globalSoundsConfiguration.clapFrequency);
+        
+        for(var i=0;i<count;i++){
+
+            setTimeout(function(){
+                soundClient.globalSounds.clap.play();    
+            },i*configurationClient.globalSoundsConfiguration.clapFrequency);
+
+        }
 
         //setting the last created sounds
         this.lastCreatedSound = this._registeredSounds[clapGuid];
 
         return clapGuid;
-    }
+    },
+
+    //this will map each of the pressed fingers to a pitch so that they can be played
+    mapPressedPingersToPitches: function(pressedFingers, handType){
+        var notes = ["A","B","C","D","E","F","G"];
+
+        if(handType == "right"){
+            //first convert the palm position to an octive
+            var octive = Math.floor(changeRange(gestureClient.hands.right.palmPosition[0],0,7,-350,300));
+            
+            var f_c = -1;
+            
+            for(pf in pressedFingers){
+                f_c++;
+                if(pressedFingers[pf] == true){
+                    //then convert the finger position to a note
+                    if(gestureClient.hands.right.fingers[f_c] == undefined) continue;
+
+                    var noteIdx = Math.floor(changeRange(gestureClient.hands.right.fingers[f_c].tipPosition[0], 0,6,-100,100));
+                    if(noteIdx > 6) noteIdx = 6;
+                    if(noteIdx < 0) noteIdx = 0;
+
+                    var note =  notes[noteIdx] + octive;
+                    soundClient.globalSounds.piano.play({pitch:note});
+                }
+            }
+        }
+        else{
+            var octive = Math.floor(changeRange(gestureClient.hands.left.palmPosition[1],0,7,-350,300));
+            if(octive > 7) octive = 7;
+            if(octive < 0) octive = 0;
+
+            //pick noteidx
+            var noteIdx = Math.floor(Math.random()*7);
+            if(noteIdx > 6) noteIdx = 6;
+            if(noteIdx < 0) noteIdx = 0;
+
+            var note =  notes[noteIdx] + octive;
+            soundClient.globalSounds.flute.play({pitch:note});
+        }
+    },
 }
 
 var gestureClient = {
@@ -851,6 +943,7 @@ var gestureClient = {
     hands: { 'right': undefined, 'left': undefined },
     lastTenFramesRightHand : [],
     lastTenFramesLeftHand : [],
+    fingersPressed : undefined,
 
 
     //updates the lp_data
@@ -858,7 +951,10 @@ var gestureClient = {
         
         if(!lp_data.valid) return;
         if(lp_data.confidence < 0.5) return;
-        // console.log(lp_data);
+        
+        // if(lp_data.gestures.length > 0)
+        //     console.log(lp_data.gestures);
+        
         this.data = lp_data;
         if (lp_data.hands.length == 0) {
             this.hands.right = undefined;
@@ -1003,6 +1099,128 @@ var gestureClient = {
             return false;
         },
 
+        isPiano: function(){
+            if(gestureClient.hands.right == undefined) return false;
+            return true;
+
+            if(gestureClient.data.gestures.length > 0){
+               for(var i=0;i<gestureClient.data.gestures.length;i++){
+                if(gestureClient.data.gestures[i].type == "keyTap")
+                    return true;
+               } 
+            }
+            
+            // your hand has to be straight-ish
+            if(gestureClient.hands.right.palmNormal[0] < -0.5 || gestureClient.hands.right.palmNormal[0] > 0.5){
+                // console.log("palm normal", gestureClient.hands.right.palmNormal[0]);
+                return false;  
+            } 
+            if(gestureClient.hands.right.direction[1] > 0.6 || gestureClient.hands.right.direction[1] < -0.5){
+                // console.log("direction ", gestureClient.hands.right.direction[1]);
+                return false;  
+            }
+
+            var fingerAngleBent = -0.3;
+
+            // fingers must be pointing downward
+            // var nameMap = ["thumb", "index", "middle", "ring", "pinky"];
+            if(gestureClient.hands.right.fingers[1].direction[1] < fingerAngleBent ||
+                gestureClient.hands.right.fingers[2].direction[1] < fingerAngleBent ||
+                gestureClient.hands.right.fingers[3].direction[1] < fingerAngleBent ||
+                gestureClient.hands.right.fingers[4].direction[1] < fingerAngleBent ){
+
+                // console.log("is piano style");
+                return true;
+            }
+
+            return false;
+        },
+
+        isFlute: function(){
+            if(gestureClient.hands.left == undefined) return false;
+
+            var palmAngleForFlute = 0.8;
+            if( gestureClient.hands.left.direction[0] > palmAngleForFlute){
+                return true;
+            }
+            return false;
+        },
+
+    },
+
+    getKeysPressed: function(){
+        var handSpeed = Math.sqrt(Math.pow(gestureClient.hands.right.palmVelocity[0],2) +
+            Math.pow(gestureClient.hands.right.palmVelocity[1],2) +
+            Math.pow(gestureClient.hands.right.palmVelocity[2],2)   
+            );
+        
+
+        if(handSpeed > 100 ) return;
+
+        var fingers = gestureClient.hands.right.fingers;
+        var fingersNameMap = ["thumb", "index", "middle", "ring", "pinky"];
+        // check each finger
+        // console.log(gestureClient.hands.right.fingers);
+        var fingersPressed = {thumb: false, index: false, middle: false, ring: false, pinky: false};
+        
+        var fingersIds = {};
+        var pressedCount = 0;
+        fingersIds[fingers[0].id] = "thumb";
+        fingersIds[fingers[1].id] = "index";
+        fingersIds[fingers[2].id] = "middle";
+        fingersIds[fingers[3].id] = "ring";
+        fingersIds[fingers[4].id] = "pinky";
+
+
+        if(gestureClient.data.gestures.length > 0){
+            gestureClient.data.gestures.forEach(function(gesture){
+                if(gesture.type == "keyTap"){
+                    for(var i=0;i<gesture.pointableIds.length;i++){
+                        fingersPressed[fingersIds[gesture.pointableIds[i]]] = true;
+                        pressedCount++;
+                    }
+                }
+            });
+        }
+
+        var py = gestureClient.hands.right.palmPosition[1];
+        for(finger in fingersPressed){
+            if(fingersPressed[finger] == false){
+                if(finger == "thumb"){
+                    var fy = gestureClient.hands.right.fingers[0].tipPosition[1];
+                    var fvy = gestureClient.hands.right.fingers[0].tipVelocity[1];
+                    if(py-fy > 15 && fvy < -150 && gestureClient.data.id % 2 == 0){
+                        fingersPressed.thumb = true;
+                        pressedCount++;
+                        // console.log("thumb", py-fy);
+                    }
+                    
+
+                }
+                else if(finger == "pinky"){
+                    var fy = gestureClient.hands.right.fingers[4].tipPosition[1];
+                    var fvy = gestureClient.hands.right.fingers[4].tipVelocity[1];
+                    if(py-fy > 15 && fvy < -150){
+                        fingersPressed.pinky = true;
+                        pressedCount++;
+                        // console.log("pinky", py-fy);    
+                    }
+                }
+                // else{
+                //     var fy = gestureClient.hands.right.fingers[fingersNameMap.indexOf(finger)].tipPosition[1];
+                //     if(py-fy > 27){
+                //         fingersPressed[finger] = true;
+                //         pressedCount++;
+                //     }
+                //     // console.log(finger, py-fy);
+                // }
+            }
+        }
+
+        this.fingersPressed = fingersPressed;
+        soundClient.mapPressedPingersToPitches(fingersPressed, "right");
+
+        return fingersPressed;
     },
 
 
@@ -1148,7 +1366,7 @@ var makeNoiseMenuClient = {
         this.lp_direction = direction;
         var itemCount = this.config.menuItems.length;
 
-        var newRange = changeRange(direction, 0, itemCount, 1,-1);
+        var newRange = changeRange(direction, 0, itemCount, 1,-0.75);
         this.selected_next = Math.floor(newRange);
 
         // if(this.lp_direction > 0 ) this.selected_next = 0;

@@ -30,54 +30,147 @@
 
     <!-- Where the user can modify an existing sound -->
     <div class="config-wrapper">
-        <div id="kick">
+        <div id="kick" class="">
             <h1>Kick Sound</h1>
-            <!-- <label for="kick-frequency">Frequency : <span id="kick-frquency-value">1000</span> ms</label>
-            <input type="range" min="20" max="5000" value="1000" id="kick-frequency" /> -->
+            <label for="kick-frequency">Frequency : <span id="kick-frquency-value">520</span> ms</label>
+            <input type="range" min="100" max="5000" value="520" id="kick-frequency" />
             
             <label for="kick-reberb">Reverb : <span id="kick-reverb-value">0</span></label>
             <input type="range" min="0" max="1" value="0" step="0.01" id="kick-reverb" />
         </div>
 
-
         <div id="bass" class="hidden">
             <h1>Bass Sound</h1>
+            <label for="bass-frequency">Frequency : <span id="bass-frquency-value">520</span> ms</label>
+            <input type="range" min="100" max="5000" value="520" id="bass-frequency" />
 
+            <label for="bass-source">Source : <span id="bass-source-value">Sine</span></label>
+            <input type="range" min="1" max="3" value="1" id="bass-source" />
+
+            <label for="bass-volume">Volume : <span id="bass-volume-value">1</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="1" id="bass-volume" />
+
+            <hr />
+            <h1>Env</h1>
+            <label for="bass-attack">Attack : <span id="bass-attack-value">0.2</span> s</label>
+            <input type="range" min="0.05" max="0.3" step="0.01" value="0.2" id="bass-attack" />
+
+            <label for="bass-decay">Decay : <span id="bass-decay-value">0.1</span></label>
+            <input type="range" min="0.1" max="0.9" step="0.1" value="0.1" id="bass-decay" />
+
+            <label for="bass-sustain">Sustain : <span id="bass-sustain-value">0.9</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="0.9" id="bass-sustain" />
+
+            <label for="bass-hold">Hold : <span id="bass-hold-value">0.4</span></label>
+            <input type="range" min="0" max="3.13" step="0.01" value="0.4" id="bass-hold" />
+
+            <label for="bass-release">Release : <span id="bass-release-value">0.1</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="0.1" id="bass-release" />
+
+            <label for="bass-pitch">Pitch : <span id="bass-pitch-value">65</span></label>
+            <input type="range" min="17" max="7900" step="50" value="65" id="bass-pitch" />
         </div>
-
 
         <div id="piano" class="hidden">
             <h1>Paino Sound</h1>
+            <label for="piano-frequency">Frequency : <span id="piano-frquency-value">500</span> ms</label>
+            <input type="range" min="20" max="5000" value="500" id="piano-frequency" />
 
+            <label for="piano-source">Source : <span id="piano-source-value">Square</span></label>
+            <input type="range" min="1" max="3" value="2" id="piano-source" />
+
+            <hr />
+            <h2>Env</h2>
+            <label for="piano-attack">Attack : <span id="piano-attack-value">0.01</span> s</label>
+            <input type="range" min="0.05" max="0.3" step="0.01" value="0.01" id="piano-attack" />
+
+            <label for="piano-decay">Decay : <span id="piano-decay-value">0.005</span></label>
+            <input type="range" min="0.1" max="0.9" step="0.01" value="0.005" id="piano-decay" />
+
+            <label for="piano-sustain">Sustain : <span id="piano-sustain-value">0.2</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="0.2" id="piano-sustain" />
+
+            <label for="piano-hold">Hold : <span id="piano-hold-value">0.015</span></label>
+            <input type="range" min="0" max="3.13" step="0.01" value="0.015" id="piano-hold" />
+
+            <label for="piano-release">Release : <span id="piano-release-value">0.3</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="0.3" id="piano-release" />
+
+            <label for="piano-pitch">Pitch : <span id="piano-pitch-value">262</span></label>
+            <input type="range" min="17" max="7900" step="50" value="262" id="piano-pitch" />
+
+
+            <hr />
+            <h2>Filter</h2>
+            <label for="piano-filter-type">Type : <span id="piano-filter-type-value">Lowpass</span></label>
+            <input type="range" min="1" max="2" step="1" value="1" id="piano-filter-type" />
+
+            <label for="piano-filter-frequency">Frequency : <span id="piano-filter-frequency-value">1200</span></label>
+            <input type="range" min="50" max="2000" step="50" value="600" id="piano-filter-frequency" />
+
+            <label for="piano-filter-q">Q - Factor: <span id="piano-filter-q-value">8.5</span></label>
+            <input type="range" min="0" max="10" step="0.5" value="8.5" id="piano-filter-q" />
         </div>
+
+        
         <div id="flute" class="hidden">
             <h1>Flute Sound</h1>
+            <label for="flute-frequency">Frequency : <span id="flute-frquency-value">500</span> ms</label>
+            <input type="range" min="20" max="5000" value="500" id="flute-frequency" />
 
+            <label for="flute-source">Source : <span id="flute-source-value">Sine</span></label>
+            <input type="range" min="1" max="3" value="1" id="flute-source" />
+
+            <hr />
+            <h2>Env</h2>
+            <label for="flute-attack">Attack : <span id="flute-attack-value">0.015</span> s</label>
+            <input type="range" min="0.05" max="0.3" step="0.01" value="0.015" id="flute-attack" />
+
+            <label for="flute-decay">Decay : <span id="flute-decay-value">0.002</span></label>
+            <input type="range" min="0.1" max="0.9" step="0.01" value="0.002" id="flute-decay" />
+
+            <label for="flute-sustain">Sustain : <span id="flute-sustain-value">0.5</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="0.5" id="flute-sustain" />
+
+            <label for="flute-hold">Hold : <span id="flute-hold-value">0.5</span></label>
+            <input type="range" min="0" max="3.13" step="0.01" value="0.5" id="flute-hold" />
+
+            <label for="flute-release">Release : <span id="flute-release-value">0.3</span></label>
+            <input type="range" min="0" max="1" step="0.01" value="0.3" id="flute-release" />
+
+            <label for="flute-pitch">Pitch : <span id="flute-pitch-value">294</span></label>
+            <input type="range" min="17" max="7900" step="50" value="294" id="flute-pitch" />
+
+
+            <hr />
+            <h2>Filter</h2>
+            <label for="flute-filter-type">Type : <span id="flute-filter-type-value">Lowpass</span></label>
+            <input type="range" min="1" max="2" step="1" value="1" id="flute-filter-type" />
+
+            <label for="flute-filter-frequency">Frequency : <span id="flute-filter-frequency-value">600</span></label>
+            <input type="range" min="50" max="2000" step="50" value="600" id="flute-filter-frequency" />
+
+            <hr />
+            <h2>Vibrato</h2>
+            <label for="flute-vibrato-attack">Attack : <span id="flute-vibrato-attack-value">1</span></label>
+            <input type="range" min="0.05" max="0.3" step="0.01" value="1" id="flute-vibrato-attack" />
+            
+            <label for="flute-vibrato-speed">Speed : <span id="flute-vibrato-speed-value">1</span></label>
+            <input type="range" min="0.1" max="10" step="0.1" value="1" id="flute-vibrato-pitch" />
+
+            <label for="flute-vibrato-magnitude">Magnitude : <span id="flute-vibrato-magnitude-value">5</span></label>
+            <input type="range" min="1" max="10" step="1" value="5" id="flute-vibrato-magnitude" />
         </div>
+
         <div id="clap"class="hidden">
             <h1>Clap Sound</h1>
-
-
+            <label for="clap-frequency">Frequency : <span id="clap-frquency-value">960</span> ms</label>
+            <input type="range" min="20" max="5000" value="960" id="clap-frequency" />
+            
+            <label for="kick-reberb">Reverb : <span id="clap-reverb-value">0.01</span></label>
+            <input type="range" min="0.01" max="1" value="0.01" step="0.01" id="clap-reverb" />
         </div>
     </div>
-
-    <!-- <div id="keyboard">
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-        <div class="key"></div>
-    </div> -->
 
     <!-- Including the scripts -->
     <script src="js/lib/jquery-1.11.1.js"></script>
