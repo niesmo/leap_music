@@ -106,14 +106,14 @@ var app = {
 
 var configurationClient = {
     config : {
-        minDepthForSelect : 60,
+        minDepthForSelect : -75,
         leftHandDirectionRange:{
             min:-0.8,
             max: 0.9
         },
     },
 
-    currentSoundType : "kick",
+    currentSoundType : "piano",
     is_active: false,
     selected: -1,
     selected_next: -1,
@@ -207,13 +207,14 @@ var configurationClient = {
     canBeActivated: function(){
 
         if (gestureClient.hands.left === undefined) return false;
-        if(gestureClient.hands.left.palmPosition[2] > 100 ) return false;
-        var handSpeed = Math.sqrt(Math.pow(gestureClient.hands.left.palmVelocity[0],2) +
-            Math.pow(gestureClient.hands.left.palmVelocity[1],2) +
-            Math.pow(gestureClient.hands.left.palmVelocity[2],2));
-        // console.log(handSpeed);
-        // if (this.currentSound == undefined) return false;
-        if(handSpeed > 300 || handSpeed < -300) return false;
+        // if(gestureClient.hands.left.palmPosition[2] > -50 ) return false; 
+        // if(gestureClient.hands.left.palmPosition[2] > 100 ) return false;
+        // var handSpeed = Math.sqrt(Math.pow(gestureClient.hands.left.palmVelocity[0],2) +
+        //     Math.pow(gestureClient.hands.left.palmVelocity[1],2) +
+        //     Math.pow(gestureClient.hands.left.palmVelocity[2],2));
+        // // console.log(handSpeed);
+        // // if (this.currentSound == undefined) return false;
+        // if(handSpeed > 300 || handSpeed < -300) return false;
 
         return true;
     },
@@ -309,7 +310,7 @@ var configurationClient = {
     },
 
     setSelectedItem: function(index){
-        // if(this.selected == index) return;
+        if(this.selected == index) return;
         this.selected = index;
         this.UI.setSelectedItem(index);
     },
@@ -403,7 +404,7 @@ var configurationClient = {
                 this.upadateSoundConfig(val);
 
             // update the UI and the slider
-            this.UI.setConfig(val);
+            this.UI.setSliderVal(val);
         },
 
         upadateSoundConfig: function(val){
@@ -414,23 +415,30 @@ var configurationClient = {
             if(this.config.attributes_order[configurationClient.selected] == "frequency"){
                 // configurationClient.currentSound.interval.interval = val;
                 configurationClient.globalSoundsConfiguration.kickFrequency = val;
+                
+                //setting the dirty bit so next time, that music is created,
+                //the sound will get updated
+
+                soundClient.dirtyBit.kick = true;
                 this.UI.updateFrequency(val);
             }
             //setting the reverb
             else{
                 // //create a new sound and replace it with the sound in the currecnt sound
-                var newKick = new Wad({
-                    source: 'assets/sounds/kick.mp3',
-                    reverb: {
-                        impulse: 'assets/sounds/longhall.wav',
-                        wet: val
-                    }
-                });
+                // var newKick = new Wad({
+                //     source: 'assets/sounds/kick.mp3',
+                //     reverb: {
+                //         impulse: 'assets/sounds/longhall.wav',
+                //         wet: val
+                //     }
+                // });
+
+                soundClient.dirtyBit.kick = true;
 
                 // configurationClient.currentSound.sound = newKick;
 
                 configurationClient.globalSoundsConfiguration.kick.reverb.wet = val;
-                soundClient.globalSounds.kick = newKick;
+                // soundClient.globalSounds.kick = newKick;
 
                 this.UI.updateReverb(val);
             }
@@ -449,7 +457,7 @@ var configurationClient = {
         },
 
         UI:{
-            setConfig:function(val){
+            setSliderVal:function(val){
                 $("#kick-" + configurationClient.kickClient.config.attributes_order[configurationClient.selected]).val(val);
             },
 
@@ -465,27 +473,235 @@ var configurationClient = {
 
     bassClient: {
         config: {
-            attributes: {frequency:"frequency", source:"source", volume:"volume", attack:"attack", decay:"decay", sustain: "sustain", hold: "hold", release:"release", pitch:"pitch"},
-            attributes_order: ["frequency","source", "volume", "attack","decay","sustain", "hold","release","pitch"],
+            attributes: {frequency:"frequency", source:"source", volume:"volume", pitch:"pitch", attack:"attack", decay:"decay", sustain: "sustain", hold: "hold", release:"release"},
+            attributes_order: ["frequency","source", "volume", "pitch", "attack","decay","sustain", "hold","release"],
             ranges: {
                 frequency:{
                     min:100,
                     max:5000
                 },
                 source:{
-                    min:0.01,
+                    min:0,
+                    max:3,
+                    options:["sine","square","sawtooth"],
+                },
+                volume:{
+                    min:0,
+                    max:1,
+                },
+                pitch:{
+                    min:17,
+                    max:7900,
+                },
+                attack:{
+                    min:0.05,
+                    max:0.3
+                },
+                decay:{
+                    min:0.1,
+                    max:0.9,
+                },
+                sustain:{
+                    min:0,
+                    max:1,
+                },
+                hold:{
+                    min:0,
+                    max:3.13,
+                },
+                release:{
+                    min:0,
                     max:1,
                 }
+                
             },
         },
         setConfig: function(){
-            console.log(configurationClient.selected);
+            var alteringItem = this.config.attributes_order[configurationClient.selected];
+            var range = this.config.ranges[alteringItem];
+
+            //change the range of the hand diretion to a number within the range
+            var direction = gestureClient.hands.left.direction[0];
+            var val = changeRange(direction, range.min, range.max, configurationClient.config.leftHandDirectionRange.min, configurationClient.config.leftHandDirectionRange.max);
+
+            if(val < range.min) val = range.min;
+            if(val > range.max) val = range.max;
+
+            // updating the sound configuration
+            //not every cycle, but every now and then
+            if (gestureClient.data.id % 10 != 0)
+                this.upadateSoundConfig(val);
+
+        },
+        upadateSoundConfig: function(data){
+            // console.log(data);
+            soundClient.dirtyBit.bass = true;
+
+            var alteringItem = this.config.attributes_order[configurationClient.selected];
+            var val = data;
+            if(alteringItem == "source"){
+
+                configurationClient.globalSoundsConfiguration.bass.source = this.config.ranges.source.options[Math.floor(data)];
+                // console.log(Math.floor(data), this.config.ranges.source.options[Math.floor(data)]);
+
+                //this.UI.setTitleValue(this.config.ranges.source.options[Math.floor(data)]);
+                val = this.config.ranges.source.options[Math.floor(data)];
+                data = Math.floor(data)+1;
+
+            }
+            else if(alteringItem == "volume" || alteringItem == "pitch"){
+                configurationClient.globalSoundsConfiguration.bass[alteringItem] = data;
+
+            }
+            else if(alteringItem == "frequency"){
+                configurationClient.globalSoundsConfiguration.bassFrequency = data;                
+            }
+            else{
+                configurationClient.globalSoundsConfiguration.bass.env[alteringItem] = data;
+            }
+
+             // update the UI and the slider
+            this.UI.setSilderVal(data);
+            this.UI.setTitleValue(val);
+        },
+
+        UI:{
+            setSilderVal:function(val){
+                $("#bass-" + configurationClient.bassClient.config.attributes_order[configurationClient.selected]).val(val);
+            },
+
+
+            setTitleValue: function(val){
+                $("#bass-"+configurationClient.bassClient.config.attributes_order[configurationClient.selected]+"-value").text(val);
+            },
         }
     },
 
     pianoClient: {
+        config:{
+            attributes: {frequency:"frequency", source:"source", pitch:"pitch", attack:"attack", decay:"decay", sustain: "sustain", hold: "hold", release:"release", "filter-type":"filter-type", "filter-frequency": "filter-frequency", "filter-q":"filter-q"},
+            attributes_order: ["frequency",    "source",        "pitch",       "attack",        "decay",       "sustain",          "hold",       "release",          "filter-type",               "filter-frequency",                     "filter-q"], 
+            ranges: {
+                frequency:{
+                    min:100,
+                    max:5000
+                },
+                source:{
+                    min:0,
+                    max:3,
+                    options:["sine","square","sawtooth"],
+                },
+                pitch:{
+                    min:17,
+                    max:7900,
+                },
+                attack:{
+                    min:0.05,
+                    max:0.3
+                },
+                decay:{
+                    min:0.1,
+                    max:0.9,
+                },
+                sustain:{
+                    min:0,
+                    max:1,
+                },
+                hold:{
+                    min:0,
+                    max:3.13,
+                },
+                release:{
+                    min:0,
+                    max:1,
+                },
+                "filter-type":{
+                    min:0,
+                    max:2,
+                    options:["lowpass", "highpass"],
+                },
+                "filter-frequency":{
+                    min:20,
+                    max:5000,
+                },
+                "filter-q":{
+                    min:0,
+                    max:10,
+                }
+            },
+        },
         setConfig: function(){
-            console.log(configurationClient.selected);
+            var alteringItem = this.config.attributes_order[configurationClient.selected];
+            var range = this.config.ranges[alteringItem];
+
+            //change the range of the hand diretion to a number within the range
+            var direction = gestureClient.hands.left.direction[0];
+            var val = changeRange(direction, range.min, range.max, configurationClient.config.leftHandDirectionRange.min, configurationClient.config.leftHandDirectionRange.max);
+
+            if(val < range.min) val = range.min;
+            if(val > range.max) val = range.max;
+
+            // updating the sound configuration
+            //not every cycle, but every now and then
+            if (gestureClient.data.id % 10 != 0)
+                this.upadateSoundConfig(val);
+
+        },
+        upadateSoundConfig: function(data){
+            // console.log(data);
+            soundClient.dirtyBit.piano = true;
+
+            var alteringItem = this.config.attributes_order[configurationClient.selected];
+            var val = data;
+            if(alteringItem == "source"){
+
+                configurationClient.globalSoundsConfiguration.piano.source = this.config.ranges.source.options[Math.floor(data)];
+                // console.log(Math.floor(data), this.config.ranges.source.options[Math.floor(data)]);
+
+                // this.UI.setSourceValue(this.config.ranges.source.options[Math.floor(data)]);
+
+                val = this.config.ranges.source.options[Math.floor(data)];
+                data = Math.floor(data)+1;
+
+            }
+            else if(alteringItem == "filter-type"){
+                configurationClient.globalSoundsConfiguration.piano.source = this.config.ranges["filter-type"].options[Math.floor(data)];
+                // console.log(Math.floor(data), this.config.ranges.source.options[Math.floor(data)]);
+
+                // this.UI.setSourceValue(this.config.ranges["filter-type"].options[Math.floor(data)]);
+                
+                val = this.config.ranges["filter-type"].options[Math.floor(data)];
+                data = Math.floor(data)+1;
+
+            }
+            else if(alteringItem == "pitch"){
+                configurationClient.globalSoundsConfiguration.piano[alteringItem] = data;
+            }
+            else if(alteringItem == "frequency"){
+                configurationClient.globalSoundsConfiguration.pianoFrequency = data;   
+            }
+            else if(alteringItem == "filter-type" || alteringItem == "filter-frequency" || alteringItem == "filter-q" ){
+                configurationClient.globalSoundsConfiguration.piano.filter[alteringItem] = data;
+            }
+            else{
+                configurationClient.globalSoundsConfiguration.piano.env[alteringItem] = data;
+            }
+
+             // update the UI and the slider
+            this.UI.setSilderVal(data);
+            this.UI.setTitleValue(val);
+        },
+
+        UI:{
+            setSilderVal:function(val){
+                console.log(val);
+                $("#piano-" + configurationClient.pianoClient.config.attributes_order[configurationClient.selected]).val(val);
+            },
+
+
+            setTitleValue: function(val){
+                $("#piano-"+configurationClient.pianoClient.config.attributes_order[configurationClient.selected]+"-value").text(val);
+            },
         }
     },
 
@@ -653,6 +869,14 @@ var soundClient = {
         piano:undefined
     },
 
+    dirtyBit:{
+        clap:false,
+        kick:false,
+        bass:false,
+        flute:false,
+        piano:false,
+    },
+
     //local variables
     _registeredSounds : new Array(),
     lastCreatedSound: {},
@@ -694,6 +918,15 @@ var soundClient = {
 
     //Creates a kick noise
     createKick: function(){
+        //checking the dirty bit and if it is set,
+        //create a new sound with the new config
+        if(this.dirtyBit.kick){
+            var kickSound = new Wad(configurationClient.globalSoundsConfiguration.kick);
+            this.globalSounds.kick = kickSound;
+
+            this.dirtyBit.kick = false;
+        }
+
         //defining variables
         var kickGuid = guid();
 
@@ -737,6 +970,15 @@ var soundClient = {
 
     //creates a bass noise
     createBass: function(){
+        //checking the dirty bit and if it is set,
+        //create a new sound with the new config
+        if(this.dirtyBit.bass){
+            var bassSound = new Wad(configurationClient.globalSoundsConfiguration.bass);
+            this.globalSounds.bass = bassSound;
+
+            this.dirtyBit.bass = false;
+        }
+
         var bassGuid = guid();
 
         //registering the song
@@ -773,6 +1015,15 @@ var soundClient = {
 
     //creates a piano sound
     createPiano: function(){
+        //checking the dirty bit and if it is set,
+        //create a new sound with the new config
+        if(this.dirtyBit.piano){
+            var pianoSound = new Wad(configurationClient.globalSoundsConfiguration.piano);
+            this.globalSounds.piano = pianoSound;
+
+            this.dirtyBit.piano = false;
+        }
+
         var pianoGuid = guid();
 
         //registering the sound
@@ -810,6 +1061,16 @@ var soundClient = {
 
     //creats a flute sound
     createFlute: function(){
+        //checking the dirty bit and if it is set,
+        //create a new sound with the new config
+        if(this.dirtyBit.flute){
+            var fluteSound = new Wad(configurationClient.globalSoundsConfiguration.flute);
+            this.globalSounds.flute = fluteSound;
+
+            this.dirtyBit.flute = false;
+        }
+
+
         var fluteGuid =  guid();
 
         //registering the sound
@@ -851,6 +1112,16 @@ var soundClient = {
 
     //creates a clap sound
     createClap: function(){
+        //checking the dirty bit and if it is set,
+        //create a new sound with the new config
+        if(this.dirtyBit.clap){
+            var clapSound = new Wad(configurationClient.globalSoundsConfiguration.clap);
+            this.globalSounds.clap = clapSound;
+
+            this.dirtyBit.clap = false;
+        }
+
+
         var clapGuid = guid();
 
         //registerig the sound

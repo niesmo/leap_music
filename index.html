@@ -30,7 +30,7 @@
 
     <!-- Where the user can modify an existing sound -->
     <div class="config-wrapper">
-        <div id="kick" class="">
+        <div id="kick" class="hidden">
             <h1>Kick Sound</h1>
             <label for="kick-frequency">Frequency : <span id="kick-frquency-value">520</span> ms</label>
             <input type="range" min="100" max="5000" value="520" id="kick-frequency" />
@@ -50,6 +50,9 @@
             <label for="bass-volume">Volume : <span id="bass-volume-value">1</span></label>
             <input type="range" min="0" max="1" step="0.01" value="1" id="bass-volume" />
 
+            <label for="bass-pitch">Pitch : <span id="bass-pitch-value">65</span></label>
+            <input type="range" min="17" max="7900" step="50" value="65" id="bass-pitch" />
+
             <hr />
             <h1>Env</h1>
             <label for="bass-attack">Attack : <span id="bass-attack-value">0.2</span> s</label>
@@ -66,18 +69,18 @@
 
             <label for="bass-release">Release : <span id="bass-release-value">0.1</span></label>
             <input type="range" min="0" max="1" step="0.01" value="0.1" id="bass-release" />
-
-            <label for="bass-pitch">Pitch : <span id="bass-pitch-value">65</span></label>
-            <input type="range" min="17" max="7900" step="50" value="65" id="bass-pitch" />
         </div>
 
-        <div id="piano" class="hidden">
-            <h1>Paino Sound</h1>
+        <div id="piano" class="">
+            <h1>Piano Sound</h1>
             <label for="piano-frequency">Frequency : <span id="piano-frquency-value">500</span> ms</label>
-            <input type="range" min="20" max="5000" value="500" id="piano-frequency" />
+            <input type="range" min="100" max="5000" value="500" id="piano-frequency" />
 
             <label for="piano-source">Source : <span id="piano-source-value">Square</span></label>
             <input type="range" min="1" max="3" value="2" id="piano-source" />
+
+            <label for="piano-pitch">Pitch : <span id="piano-pitch-value">262</span></label>
+            <input type="range" min="17" max="7900" step="50" value="262" id="piano-pitch" />
 
             <hr />
             <h2>Env</h2>
@@ -96,9 +99,6 @@
             <label for="piano-release">Release : <span id="piano-release-value">0.3</span></label>
             <input type="range" min="0" max="1" step="0.01" value="0.3" id="piano-release" />
 
-            <label for="piano-pitch">Pitch : <span id="piano-pitch-value">262</span></label>
-            <input type="range" min="17" max="7900" step="50" value="262" id="piano-pitch" />
-
 
             <hr />
             <h2>Filter</h2>
@@ -112,7 +112,6 @@
             <input type="range" min="0" max="10" step="0.5" value="8.5" id="piano-filter-q" />
         </div>
 
-        
         <div id="flute" class="hidden">
             <h1>Flute Sound</h1>
             <label for="flute-frequency">Frequency : <span id="flute-frquency-value">500</span> ms</label>
