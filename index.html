@@ -4,11 +4,69 @@
     <title>Art Project Leap Motion</title>
     <meta charset='utf-8' />
 
+    <link rel="shortcut icon" href="favicon.ico" />
+
     <!-- Including the stylings -->
     <link href="css/style.css" rel="stylesheet" type="text/css" />
 
 </head>
 <body>    
+    <!-- Title -->
+    <h1 id="piece-title">Hand Music</h1>
+
+    <!-- Buttons -->
+    <button id="reset" class="pull-right">Reset</button>
+    <button id="help" class="pull-right">Help?</button>
+
+    <!-- help panel -->
+    <div id="help-panel" class="">
+        <div class="help-item">
+            <h3>Make Noise Menu</h3>
+            <ol>
+                <li>Hover your right hand pointing at the menu.</li>
+                <li>Move your hand up and down</li>
+                <li>Move your hand towards screen to select</li>
+            <ol>
+        </div>
+
+        <div class="help-item">
+            <h3>Configuration Panel</h3>
+            <ol>
+                <li>Hover your left hand pointing at the center menu.</li>
+                <li>Move your hand up and down</li>
+                <li>Move your hand towards screen to lock item</li>
+                <li>Move your hand left or right to change the config</li>
+            <ol>
+        </div>
+
+        <div class="help-item">
+            <h3>Easy Piano and Flute</h3>
+            <ul>
+                <li>Act like you are playing piano slowly (Right)</li>
+                <li>Left hand pointing to right. (up &amp; down)</li>
+            <ul>    
+        </div>
+
+        <div class="help-item">
+            <h3>Easy kick and Bass</h3>
+            <p>
+                <ul>
+                    <li>Bass: Move your right hand up &amp; down</li>
+                    <li>Kick: Move your left hand up &amp; down</li>
+                <ul>
+            </p>    
+        </div>
+
+        <div class="help-item">
+            <h3>Easy Clap</h3>
+            <p>
+                <ul>
+                    <li>Clap!</li>
+                <ul>
+            </p>    
+        </div>
+    </div>
+
     <!-- Where the user choose to create new sounds -->
     <div id="create">
         <h1 class="list-title">Make Noise</h1>
@@ -22,7 +80,7 @@
     </div>
 
     <!-- Where the created sounds show up -->
-    <div id="sound-history">
+    <div id="sound-history" class="hidden">
         <h1 class="list-title">Sound History</h1>
         <ol class="side-list">            
         </ol>
@@ -35,13 +93,13 @@
             <label for="kick-frequency">Frequency : <span id="kick-frquency-value">520</span> ms</label>
             <input type="range" min="100" max="5000" value="520" id="kick-frequency" />
             
-            <label for="kick-reberb">Reverb : <span id="kick-reverb-value">0</span></label>
-            <input type="range" min="0" max="1" value="0" step="0.01" id="kick-reverb" />
+            <!-- <label for="kick-reberb">Reverb : <span id="kick-reverb-value">0</span></label>
+            <input type="range" min="0" max="1" value="0" step="0.01" id="kick-reverb" /> -->
         </div>
 
         <div id="bass" class="hidden">
             <h1>Bass Sound</h1>
-            <label for="bass-frequency">Frequency : <span id="bass-frquency-value">520</span> ms</label>
+            <label for="bass-frequency">Frequency : <span id="bass-frequency-value">520</span> ms</label>
             <input type="range" min="100" max="5000" value="520" id="bass-frequency" />
 
             <label for="bass-source">Source : <span id="bass-source-value">Sine</span></label>
@@ -71,13 +129,13 @@
             <input type="range" min="0" max="1" step="0.01" value="0.1" id="bass-release" />
         </div>
 
-        <div id="piano" class="">
+        <div id="piano" class="hidden">
             <h1>Piano Sound</h1>
-            <label for="piano-frequency">Frequency : <span id="piano-frquency-value">500</span> ms</label>
+            <label for="piano-frequency">Frequency : <span id="piano-frequency-value">500</span> ms</label>
             <input type="range" min="100" max="5000" value="500" id="piano-frequency" />
 
-            <label for="piano-source">Source : <span id="piano-source-value">Square</span></label>
-            <input type="range" min="1" max="3" value="2" id="piano-source" />
+            <!-- <label for="piano-source">Source : <span id="piano-source-value">Square</span></label>
+            <input type="range" min="1" max="3" value="2" id="piano-source" /> -->
 
             <label for="piano-pitch">Pitch : <span id="piano-pitch-value">262</span></label>
             <input type="range" min="17" max="7900" step="50" value="262" id="piano-pitch" />
@@ -101,7 +159,7 @@
 
 
             <hr />
-            <h2>Filter</h2>
+            <!-- <h2>Filter</h2>
             <label for="piano-filter-type">Type : <span id="piano-filter-type-value">Lowpass</span></label>
             <input type="range" min="1" max="2" step="1" value="1" id="piano-filter-type" />
 
@@ -109,16 +167,19 @@
             <input type="range" min="50" max="2000" step="50" value="600" id="piano-filter-frequency" />
 
             <label for="piano-filter-q">Q - Factor: <span id="piano-filter-q-value">8.5</span></label>
-            <input type="range" min="0" max="10" step="0.5" value="8.5" id="piano-filter-q" />
+            <input type="range" min="0" max="10" step="0.5" value="8.5" id="piano-filter-q" /> -->
         </div>
 
         <div id="flute" class="hidden">
             <h1>Flute Sound</h1>
-            <label for="flute-frequency">Frequency : <span id="flute-frquency-value">500</span> ms</label>
-            <input type="range" min="20" max="5000" value="500" id="flute-frequency" />
+            <label for="flute-frequency">Frequency : <span id="flute-frequency-value">500</span> ms</label>
+            <input type="range" min="100" max="5000" value="500" id="flute-frequency" />
 
             <label for="flute-source">Source : <span id="flute-source-value">Sine</span></label>
             <input type="range" min="1" max="3" value="1" id="flute-source" />
+
+            <label for="flute-pitch">Pitch : <span id="flute-pitch-value">294</span></label>
+            <input type="range" min="17" max="7900" step="50" value="294" id="flute-pitch" />
 
             <hr />
             <h2>Env</h2>
@@ -137,10 +198,6 @@
             <label for="flute-release">Release : <span id="flute-release-value">0.3</span></label>
             <input type="range" min="0" max="1" step="0.01" value="0.3" id="flute-release" />
 
-            <label for="flute-pitch">Pitch : <span id="flute-pitch-value">294</span></label>
-            <input type="range" min="17" max="7900" step="50" value="294" id="flute-pitch" />
-
-
             <hr />
             <h2>Filter</h2>
             <label for="flute-filter-type">Type : <span id="flute-filter-type-value">Lowpass</span></label>
@@ -152,32 +209,35 @@
             <hr />
             <h2>Vibrato</h2>
             <label for="flute-vibrato-attack">Attack : <span id="flute-vibrato-attack-value">1</span></label>
-            <input type="range" min="0.05" max="0.3" step="0.01" value="1" id="flute-vibrato-attack" />
+            <input type="range" min="0.05" max="5" step="0.01" value="1" id="flute-vibrato-attack" />
             
             <label for="flute-vibrato-speed">Speed : <span id="flute-vibrato-speed-value">1</span></label>
-            <input type="range" min="0.1" max="10" step="0.1" value="1" id="flute-vibrato-pitch" />
+            <input type="range" min="0.1" max="10" step="0.1" value="1" id="flute-vibrato-speed" />
 
             <label for="flute-vibrato-magnitude">Magnitude : <span id="flute-vibrato-magnitude-value">5</span></label>
             <input type="range" min="1" max="10" step="1" value="5" id="flute-vibrato-magnitude" />
         </div>
 
-        <div id="clap"class="hidden">
+        <div id="clap"class="">
             <h1>Clap Sound</h1>
             <label for="clap-frequency">Frequency : <span id="clap-frquency-value">960</span> ms</label>
             <input type="range" min="20" max="5000" value="960" id="clap-frequency" />
             
-            <label for="kick-reberb">Reverb : <span id="clap-reverb-value">0.01</span></label>
-            <input type="range" min="0.01" max="1" value="0.01" step="0.01" id="clap-reverb" />
+            <!-- <label for="kick-reberb">Reverb : <span id="clap-reverb-value">0.01</span></label>
+            <input type="range" min="0.01" max="1" value="0.01" step="0.01" id="clap-reverb" /> -->
         </div>
     </div>
 
     <!-- Including the scripts -->
+    <!--<script src="js/lib/howler.min.js"></script>-->
+    <!--<script src="js/lib/music.js"></script>-->
+
     <script src="js/lib/jquery-1.11.1.js"></script>
     <script src="js/lib/jquery-ui-1.11.1.min.js"></script>
-    <script src="js/lib/howler.min.js"></script>
     <script src="js/lib/wad.js"></script>
     <script src="js/lib/leap-0.6.3.js"></script>
-    <script src="js/lib/music.js"></script>
+    
+    <!-- <script src="lib/libs.min.js"></script> -->
     <script src="js/index.js"></script>
 </body>
 </html>

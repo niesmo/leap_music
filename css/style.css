@@ -11,6 +11,79 @@ body{
     color:red;
 }
 
+.pull-right{
+    float:right;
+}
+
+h1#piece-title {
+    color: #FFD40F;
+    font-size: 69px;
+    float: left;
+    font-family: Papyrus;
+}
+
+button#reset {
+    width: 150px;
+    height: 50px;
+    font-size: 30px;
+    font-family: monospace;
+    background-color: #E02345;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+button#help {
+    width: 150px;
+    height: 50px;
+    font-size: 30px;
+    font-family: monospace;
+    background-color: #F7F76F;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    margin-right: 10px;
+    position: absolute;
+    bottom: 12px;
+    right: 0;
+}
+
+#help-panel{
+    position: absolute;
+    top: calc(-300px - 45px);
+    left: 0;
+    width: calc(100% - 40px);
+    height: 300px;
+    background-color: #3EBFA2;
+    z-index: 1;
+    -webkit-transition: top 1s ease;
+    transition: top 1s ease;
+    color: black;
+    padding: 20px;
+    border-bottom: 5px solid white;
+}
+
+#help-panel.open{
+    top: 0px;
+}
+
+#help-panel div.help-item {
+    display: inline-block;
+    width: calc(20% - 4px);
+    background-color: #EAD73D;
+    height: calc(300px - 0px);
+    float: left;
+    margin-left: 4px;
+}
+
+#help-panel div.help-item h3 {
+    margin-top: 0;
+    padding-top: 15px;
+    padding-left: 20px;
+    font-size: 20px;
+    margin-bottom: 0;
+}
+
 .config-wrapper{
     width: 1100px;
     height: 934px;
@@ -113,9 +186,9 @@ body{
 #piano label {
   display: block;
   margin-left: 12.5%;
-  font-size: 23px;
-  height: 35px;
-  line-height: 35px;
+  font-size: 26px;
+  height: 80px;
+  line-height: 80px;
 }
 
 #piano input {
